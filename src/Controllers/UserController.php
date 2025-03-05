@@ -14,7 +14,7 @@ class UserController {
 
     public function listUsers(Request $request, Response $response) {
         $users = $this->userRepository->getAllUsers();
-        $response->getBody()->write(json_encode($users));
+        $response->getBody()->write(json_encode($users, JSON_UNESCAPED_UNICODE));
         return $response->withHeader('Content-Type', 'application/json');
     }
 
