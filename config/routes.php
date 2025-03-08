@@ -8,7 +8,7 @@ $app->options('/{routes:.+}', function ($request, $response) {
 });
 
 $app->group('/api', function (RouteCollectorProxy $group) {
-    $group->get('/customers', [CustomerController::class, 'listCustomers']);
+    $group->get('/customers', [CustomerController::class, 'getAll']);
     $group->post('/customers', [CustomerController::class, 'createCustomer']);
     $group->get('/customers/{id}', [CustomerController::class, 'getCustomerById']);
 
