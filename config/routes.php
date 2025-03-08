@@ -1,13 +1,17 @@
 <?php
 use Slim\Routing\RouteCollectorProxy;
-use App\Controllers\UserController;
+use App\Controllers\CustomerController;
+use App\Controllers\StatsOfCustomerController;
 
 $app->options('/{routes:.+}', function ($request, $response) {
     return $response;
 });
 
 $app->group('/api', function (RouteCollectorProxy $group) {
-    $group->get('/users', [UserController::class, 'listUsers']);
-    $group->post('/users', [UserController::class, 'createUser']);
-    $group->get('/users/{id}', [UserController::class, 'getUserById']);
+    $group->get('/customers', [CustomerController::class, 'listCustomers']);
+    $group->post('/customers', [CustomerController::class, 'createCustomer']);
+    $group->get('/customers/{id}', [CustomerController::class, 'getCustomerById']);
+
+    // Stats
+    $group->get('/statsOfCustomers', [StatsOfCustomerController::class, 'stats']);
 });
