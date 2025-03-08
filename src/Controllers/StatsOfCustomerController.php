@@ -18,4 +18,16 @@ class StatsOfCustomerController {
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    public function getStats(Request $request, Response $response) {
+        $totalCustomers = $this->statsOfCustomerRepository->getTotalCustomers();
+        $customersPerMonth = $this->statsOfCustomerRepository->getCustomersPerMonth();
+        $totalCustomersByType = $this->statsOfCustomerRepository->getTotalCustomersByType();
+        $response->getBody()->write(json_encode([
+            "totalCustomers" => $totalCustomers, 
+            "customersPerMonth" => $customersPerMonth, 
+            "totalCustomersByType" =>$totalCustomersByType
+        ], JSON_UNESCAPED_UNICODE));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
 }
