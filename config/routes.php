@@ -13,5 +13,5 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     $group->get('/customers/{id}', [CustomerController::class, 'getCustomerById']);
 
     // Stats
-    $group->get('/statsOfCustomers', [StatsOfCustomerController::class, 'stats']);
+    $group->get('/statsOfCustomers', [StatsOfCustomerController::class, 'getStats']);
 });
