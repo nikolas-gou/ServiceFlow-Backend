@@ -19,7 +19,7 @@ class Customer {
     }
 
     public function isValid(): bool {
-        return !empty(trim($this->name)) && !empty(trim($this->phone));
+        return !empty(\trim($this->name)) && !empty(\trim($this->phone));
     }
 
     public function toArray(): array {
