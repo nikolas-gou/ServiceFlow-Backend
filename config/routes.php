@@ -4,6 +4,7 @@ use App\Controllers\CustomerController;
 use App\Controllers\MotorController;
 use App\Controllers\RepairController;
 use App\Controllers\StatsOfCustomerController;
+use App\Controllers\StatsOfRepairController;
 
 $app->options('/{routes:.+}', function ($request, $response) {
     return $response;
@@ -26,4 +27,5 @@ $app->group('/api', function (RouteCollectorProxy $group) {
 
     // Stats
     $group->get('/statsOfCustomers', [StatsOfCustomerController::class, 'getStats']);
+    $group->get('/statsOfRepair', [StatsOfRepairController::class, 'stats']);
 });
