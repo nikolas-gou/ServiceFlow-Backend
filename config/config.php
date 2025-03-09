@@ -26,7 +26,7 @@
             'port' => $is_local ? 3306 : 3306
         ],
         'displayErrorDetails' => $is_local,
-        'base_url' => $is_local ? 'http://localhost:3000' : 'serviceflow.infinityfreeapp.com'
+        'base_url' => $is_local ? 'http://localhost:3000' : 'serviceflow.infinityfreeapp.com/ServiceFlow-Backend'
     ];
 
     return $config;
