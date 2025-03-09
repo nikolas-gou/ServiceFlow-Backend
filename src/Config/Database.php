@@ -7,6 +7,16 @@ class Database {
     private $username = 'root';
     private $password = '';
 
+    public function __construct() {
+        $config = require __DIR__ . '/../../config/config.php';
+        $db = $config['db'];
+        
+        $this->host = $db['host'];
+        $this->db_name = $db['name'];
+        $this->username = $db['user'];
+        $this->password = $db['pass'];
+    }
+
     public function getConnection() {
         try {
             $conn = new \PDO(
