@@ -9,22 +9,20 @@ class Repair {
     public $description;
     public $cost;
     public $created_at;
+    public $estimatedIsComplete;
     public $customer;
     public $motor;
 
     public function __construct(array $data = []) {
         $this->id = $data['id'] ?? null;
-        $this->motorID = $data['motorID'] ?? '';
-        $this->customerID = $data['customerID'] ?? '';
+        $this->motorID = $data['motorID'] ?? null;
+        $this->customerID = $data['customerID'] ?? null;
         $this->repair_status = $data['repair_status'] ?? '';
-        $this->created_at = $data['created_at'] ?? null;
+        $this->created_at = $data['created_at'] ?? "";
         $this->description = $data['description'] ?? '';
         $this->cost = $data['cost'] ?? '';
+        $this->estimatedIsComplete = $data['estimatedIsComplete'] ?? '';
     }
-
-    // public function isValid(): bool {
-    //     return !empty(\trim($this->name)) && !empty(\trim($this->phone));
-    // }
 
     public function toArray(): array {
         return [
@@ -33,6 +31,7 @@ class Repair {
             'customerID' => $this->customerID,
             'repair_status' => $this->repair_status,
             'created_at' => $this->created_at,
+            'estimatedIsComplete' => $this->estimatedIsComplete,
             'description' => $this->description,
             'cost' => $this->cost,
             'customer' => $this->customer ? $this->customer->toArray() : null,
