@@ -23,4 +23,10 @@ class MotorController {
         $response->getBody()->write(json_encode($motor));
         return $response->withHeader('Content-Type', 'application/json');
     }
+
+     public function getAllBrands(Request $request, Response $response) {
+        $brands = $this->motorRepository->getAllBrands();
+        $response->getBody()->write(json_encode($brands, JSON_UNESCAPED_UNICODE));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
 }
