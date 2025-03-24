@@ -19,6 +19,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     // Motors
     $group->get('/motors', [MotorController::class, 'getAll']);
     $group->post('/motors', [MotorController::class, 'createMotor']);
+    $group->get('/motors/brands', [MotorController::class, 'getAllBrands']);
     $group->get('/motors/{id}', [MotorController::class, 'getMotorById']);
 
     // Repairs
