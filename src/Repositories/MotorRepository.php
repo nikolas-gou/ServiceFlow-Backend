@@ -41,4 +41,13 @@ class MotorRepository {
             
             return new Motor($motorData);
     }
+
+    public function getAllBrands() {
+        $query = "SELECT distinct manufacturer FROM motors";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        
+        return $motorsData;
+    }
 }
