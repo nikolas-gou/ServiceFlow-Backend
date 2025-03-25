@@ -129,6 +129,97 @@ public function getAll() {
             
             return new Repair($repairData);
         }
+    public function createNewRepair($repairData, $customerData, $motorData, $repair_types) {
+        try {
+            $this->conn->beginTransaction();
+            
+            // 1. Έλεγχος αν ο πελάτης υπάρχει ήδη ή δημιουργία νέου πελάτη
+            $customerId = null;
+            if (isset($customerData['id']) && $customerData['id'] > 0) {
+                // Χρήση υπάρχοντος πελάτη
+                $customerId = $customerData['id'];
+            } else {
+                // Δημιουργία νέου πελάτη
+                $customerQuery = "INSERT INTO customers (type, name, email, phone, created_at) 
+                                VALUES (:type, :name, :email, :phone, :created_at)";
+                $customerStmt = $this->conn->prepare($customerQuery);
+                $customerStmt->bindParam(':type', $customerData['type']);
+                $customerStmt->bindParam(':name', $customerData['name']);
+                $customerStmt->bindParam(':email', $customerData['email']);
+                $customerStmt->bindParam(':phone', $customerData['phone']);
+                $customerStmt->bindParam(':created_at', $customerData['created_at']);
+                $customerStmt->execute();
+                $customerId = $this->conn->lastInsertId();
+            }
+            
+            // 2. Έλεγχος αν ο κινητήρας υπάρχει ήδη ή δημιουργία νέου κινητήρα
+            // Σχεδον παντα δεν θα υπαρχει ιδιος
+            $motorId = null;
+            if (isset($motorData['id']) && $motorData['id'] > 0) {
+                // Χρήση υπάρχοντος κινητήρα
+                $motorId = $motorData['id'];
+            } else {
+                // Δημιουργία νέου κινητήρα
+                $motorQuery = "INSERT INTO motors (customerID, serial_number, manufacturer, kw, hp, rpm, step, spiral, 
+                            cross_section, connectionism, volt, poles, created_at) 
+                            VALUES (:customerID, :serial_number, :manufacturer, :kw, :hp, :rpm, :step, :spiral, 
+                            :cross_section, :connectionism, :volt, :poles, :created_at)";
+                $motorStmt = $this->conn->prepare($motorQuery);
+                $motorStmt->bindParam(':customerID', $customerId);
+                $motorStmt->bindParam(':serial_number', $motorData['serial_number']);
+                $motorStmt->bindParam(':manufacturer', $motorData['manufacturer']);
+                $motorStmt->bindParam(':kw', $motorData['kw']);
+                $motorStmt->bindParam(':hp', $motorData['hp']);
+                $motorStmt->bindParam(':rpm', $motorData['rpm']);
+                $motorStmt->bindParam(':step', $motorData['step']);
+                $motorStmt->bindParam(':spiral', $motorData['spiral']);
+                $motorStmt->bindParam(':cross_section', $motorData['cross_section']);
+                $motorStmt->bindParam(':connectionism', $motorData['connectionism']);
+                $motorStmt->bindParam(':volt', $motorData['volt']);
+                $motorStmt->bindParam(':poles', $motorData['poles']);
+                $motorStmt->bindParam(':created_at', $motorData['created_at']);
+                $motorStmt->execute();
+                $motorId = $this->conn->lastInsertId();
+            }
+            
+            // 3. Δημιουργία της επισκευής
+            $repairQuery = "INSERT INTO repairs (customerID, motorID, description, 
+                        repair_status, cost, created_at, estimatedIsComplete) 
+                        VALUES (:customerID, :motorID, :description, :repair_status,
+                        :cost, :created_at, :estimatedIsComplete)";
+            $repairStmt = $this->conn->prepare($repairQuery);
+            $repairStmt->bindParam(':customerID', $customerId);
+            $repairStmt->bindParam(':motorID', $motorId);
+            $repairStmt->bindParam(':description', $repairData['description']);
+            $repairStmt->bindParam(':repair_status', $repairData['repair_status']);
+            $repairStmt->bindParam(':cost', $repairData['cost']);
+            $repairStmt->bindParam(':created_at', $repairData['created_at']);
+            $repairStmt->bindParam(':estimatedIsComplete', $repairData['estimatedIsComplete']);
+            $repairStmt->execute();
+            $repairId = $this->conn->lastInsertId();
+
+            // 4. Αποθήκευση των τύπων επισκευής (repair types)
+            if (isset($repair_types) && is_array($repair_types)) {
+                foreach ($repair_types as $repairType) {
+                    $repairItemQuery = "INSERT INTO repair_items (repairID, repair_typeID) 
+                                    VALUES (:repairID, :repair_typeID)";
+                    $repairItemStmt = $this->conn->prepare($repairItemQuery);
+                    $repairItemStmt->bindParam(':repairID', $repairId);
+                    $repairItemStmt->bindParam(':repair_typeID', $repairType);
+                    $repairItemStmt->execute();
+                }
+            }
+            
+            $this->conn->commit();
+            
+            // 4. Ανάκτηση πλήρους επισκευής με πελάτη και κινητήρα
+            return $this->getRepairById($repairId);
+            
+        } catch (\Exception $e) {
+            $this->conn->rollBack();
+            throw $e;
+        }
+    }
         
     // public function createCustomer(Customer $customer) {
     //     $query = "INSERT INTO customers (type, name, email, phone, created_at) 
