@@ -161,9 +161,9 @@ public function getAll() {
             } else {
                 // Δημιουργία νέου κινητήρα
                 $motorQuery = "INSERT INTO motors (customerID, serial_number, manufacturer, kw, hp, rpm, step, spiral, 
-                            cross_section, connectionism, volt, poles, created_at) 
+                            cross_section, connectionism, volt, poles, typeOfMotor, typeOfVolt, created_at) 
                             VALUES (:customerID, :serial_number, :manufacturer, :kw, :hp, :rpm, :step, :spiral, 
-                            :cross_section, :connectionism, :volt, :poles, :created_at)";
+                            :cross_section, :connectionism, :volt, :poles, :typeOfMotor, :typeOfVolt, :created_at)";
                 $motorStmt = $this->conn->prepare($motorQuery);
                 $motorStmt->bindParam(':customerID', $customerId);
                 $motorStmt->bindParam(':serial_number', $motorData['serial_number']);
@@ -177,6 +177,8 @@ public function getAll() {
                 $motorStmt->bindParam(':connectionism', $motorData['connectionism']);
                 $motorStmt->bindParam(':volt', $motorData['volt']);
                 $motorStmt->bindParam(':poles', $motorData['poles']);
+                $motorStmt->bindParam(':typeOfMotor', $motorData['typeOfMotor']);
+                $motorStmt->bindParam(':typeOfVolt', $motorData['typeOfVolt']);
                 $motorStmt->bindParam(':created_at', $motorData['created_at']);
                 $motorStmt->execute();
                 $motorId = $this->conn->lastInsertId();

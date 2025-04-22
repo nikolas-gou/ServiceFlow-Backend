@@ -14,6 +14,9 @@ class Motor {
     public $connectionism;
     public $volt;
     public $poles;
+    public $typeOfStep;
+    public $typeOfMotor;
+    public $typeOfVolt;
     public $created_at;
     public $customerID;
 
@@ -30,6 +33,9 @@ class Motor {
         $this->connectionism = $data['connectionism'] ?? "";
         $this->volt = $data['volt'] ?? "";
         $this->poles = $data['poles'] ?? "";
+        $this->typeOfStep = $data['typeOfStep'] ?? "";
+        $this->typeOfMotor = $data['typeOfMotor'] ?? "";
+        $this->typeOfVolt = $data['typeOfVolt'] ?? "";
         $this->created_at = $data['created_at'] ?? "";
         $this->customerID = $data['customerID'] ?? "";
     }
@@ -52,6 +58,9 @@ class Motor {
             'connectionism' => $this->connectionism,
             'volt' => $this->volt,
             'poles' => $this->poles,
+            'typeOfStep' => $this->typeOfStep,
+            "typeOfMotor" => $this->typeOfMotor,
+            "typeOfVolt" => $this->typeOfVolt,
             'created_at' => $this->created_at,
             'customerID' => $this->customerID,
         ];
