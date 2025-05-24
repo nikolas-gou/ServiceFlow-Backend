@@ -32,7 +32,7 @@ class Motor {
     public function __construct(array $data = []) {
         $this->id = $data['id'] ?? null;
         $this->serial_number = $data['serial_number'] ?? null;
-        $this->manufacturer = $data['manufacturer'] ?? null;
+        $this->manufacturer = $data['manufacturer'] ?? "";
         $this->kw = $data['kw'] ?? null;
         $this->hp = $data['hp'] ?? null;
         $this->rpm = $data['rpm'] ?? null;
@@ -54,7 +54,7 @@ class Motor {
         $this->typeOfStep = $data['typeOfStep'] ?? "standard";
         $this->typeOfMotor = $data['typeOfMotor'] ?? "el_motor";
         $this->typeOfVolt = $data['typeOfVolt'] ?? "3-phase";
-        $this->created_at = $data['created_at'] ?? null;
+        $this->created_at = $data['created_at'] ?? "";
         $this->customerID = $data['customerID'] ?? null;
     }
 
