@@ -31,6 +31,6 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     $group->get('/repair_types', [Repair_TypesController::class, 'getAll']);
 
     // Stats
-    $group->get('/statsOfCustomers', [StatsOfCustomerController::class, 'getStats']);
+    $group->get('/statsOfCustomers', [StatsOfCustomerController::class, 'stats']);
     $group->get('/statsOfRepair', [StatsOfRepairController::class, 'stats']);
 });

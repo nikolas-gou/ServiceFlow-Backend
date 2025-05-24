@@ -13,7 +13,7 @@ class StatsOfCustomerController {
     }
 
     public function stats(Request $request, Response $response) {
-        $stats = $this->statsOfCustomerRepository->getAllStats();
+        $stats = $this->statsOfCustomerRepository->getTotalCustomers();
         $response->getBody()->write(json_encode($stats, JSON_UNESCAPED_UNICODE));
         return $response->withHeader('Content-Type', 'application/json');
     }
