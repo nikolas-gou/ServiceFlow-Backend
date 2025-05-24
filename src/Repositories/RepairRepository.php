@@ -160,10 +160,10 @@ public function getAll() {
                 $motorId = $motorData['id'];
             } else {
                 // Δημιουργία νέου κινητήρα
-                $motorQuery = "INSERT INTO motors (customerID, serial_number, manufacturer, kw, hp, rpm, step, spiral, 
-                            cross_section, connectionism, volt, poles, created_at) 
-                            VALUES (:customerID, :serial_number, :manufacturer, :kw, :hp, :rpm, :step, :spiral, 
-                            :cross_section, :connectionism, :volt, :poles, :created_at)";
+                $motorQuery = "INSERT INTO motors (customerID, serial_number, manufacturer, kw, hp, rpm, step, halfStep, helperStep, helperHalfStep, spiral, halfSpiral, helperSpiral, helperHalfSpiral, 
+                            cross_section, halfCross_section, helperCross_section, helperHalfCross_section, connectionism, volt, poles, typeOfMotor, typeOfVolt, typeOfStep, created_at) 
+                            VALUES (:customerID, :serial_number, :manufacturer, :kw, :hp, :rpm, :step, :halfStep, :helperStep, :helperHalfStep, :spiral, :halfSpiral, :helperSpiral, :helperHalfSpiral,
+                            :cross_section, :halfCross_section, :helperCross_section, :helperHalfCross_section, :connectionism, :volt, :poles, :typeOfMotor, :typeOfVolt, :typeOfStep, :created_at)";
                 $motorStmt = $this->conn->prepare($motorQuery);
                 $motorStmt->bindParam(':customerID', $customerId);
                 $motorStmt->bindParam(':serial_number', $motorData['serial_number']);
@@ -172,11 +172,23 @@ public function getAll() {
                 $motorStmt->bindParam(':hp', $motorData['hp']);
                 $motorStmt->bindParam(':rpm', $motorData['rpm']);
                 $motorStmt->bindParam(':step', $motorData['step']);
+                $motorStmt->bindParam(':halfStep', $motorData['halfStep']);
+                $motorStmt->bindParam(':helperStep', $motorData['helperStep']);
+                $motorStmt->bindParam(':helperHalfStep', $motorData['helperHalfStep']);
                 $motorStmt->bindParam(':spiral', $motorData['spiral']);
+                $motorStmt->bindParam(':halfSpiral', $motorData['halfSpiral']);
+                $motorStmt->bindParam(':helperSpiral', $motorData['helperSpiral']);
+                $motorStmt->bindParam(':helperHalfSpiral', $motorData['helperHalfSpiral']);
                 $motorStmt->bindParam(':cross_section', $motorData['cross_section']);
+                $motorStmt->bindParam(':halfCross_section', $motorData['halfCross_section']);
+                $motorStmt->bindParam(':helperCross_section', $motorData['helperCross_section']);
+                $motorStmt->bindParam(':helperHalfCross_section', $motorData['helperHalfCross_section']);
                 $motorStmt->bindParam(':connectionism', $motorData['connectionism']);
                 $motorStmt->bindParam(':volt', $motorData['volt']);
                 $motorStmt->bindParam(':poles', $motorData['poles']);
+                $motorStmt->bindParam(':typeOfMotor', $motorData['typeOfMotor']);
+                $motorStmt->bindParam(':typeOfVolt', $motorData['typeOfVolt']);
+                $motorStmt->bindParam(':typeOfStep', $motorData['typeOfStep']);
                 $motorStmt->bindParam(':created_at', $motorData['created_at']);
                 $motorStmt->execute();
                 $motorId = $this->conn->lastInsertId();
