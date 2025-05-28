@@ -9,6 +9,7 @@ class Repair {
     public $description;
     public $cost;
     public $created_at;
+    public $isArrived;
     public $estimatedIsComplete;
     public $customer;
     public $motor;
@@ -19,6 +20,7 @@ class Repair {
         $this->customerID = $data['customerID'] ?? null;
         $this->repair_status = $data['repair_status'] ?? '';
         $this->created_at = $data['created_at'] ?? "";
+        $this->isArrived = $data['isArrived'] ?? "";
         $this->description = $data['description'] ?? '';
         $this->cost = $data['cost'] ?? '';
         $this->estimatedIsComplete = $data['estimatedIsComplete'] ?? '';
@@ -31,6 +33,7 @@ class Repair {
             'customerID' => $this->customerID,
             'repair_status' => $this->repair_status,
             'created_at' => $this->created_at,
+            'isArrived' => $this->isArrived,
             'estimatedIsComplete' => $this->estimatedIsComplete,
             'description' => $this->description,
             'cost' => $this->cost,

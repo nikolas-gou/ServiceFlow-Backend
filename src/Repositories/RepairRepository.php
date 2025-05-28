@@ -14,58 +14,45 @@ class RepairRepository {
         $this->conn = $database->getConnection();
     }
 
-// public function getAll() {
-//     // Ερώτημα για να πάρεις τα δεδομένα της επισκευής και των πελατών
-//     $query = "
-//         SELECT repairs.*, customers.*
-//         FROM repairs
-//         INNER JOIN customers ON repairs.customerID = customers.id
-//     ";
-    
-//     // Εκτέλεση της προετοιμασίας και της εκτέλεσης του query
-//     $stmt = $this->conn->prepare($query);
-//     $stmt->execute();
-    
-//     // Ανάκτηση των δεδομένων
-//     $repairsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-    
-//     // Δημιουργία πίνακα για να κρατήσεις τα αντικείμενα Repair
-//     $repairs = [];
-    
-//     // Διασχίζοντας τα δεδομένα και δημιουργώντας το αντικείμενο Repair μαζί με τον Customer
-//     foreach ($repairsData as $repairData) {
-//         // Δημιουργούμε το αντικείμενο Repair
-//         $repair = new Repair($repairData);
-
-//         // Δημιουργία του αντικειμένου Customer
-//         $customerData = [
-//             'id' => $repairData['customerID'],
-//             'type' => $repairData['type'],
-//             'name' => $repairData['name'],
-//             'email' => $repairData['email'],
-//             'phone' => $repairData['phone'],
-//             'created_at' => $repairData['created_at'],
-//         ];
-//         $customer = new Customer($customerData);
-        
-//         // Ανάθεση του αντικειμένου Customer στην επισκευή
-//         $repair->customer = $customer;
-        
-//         // Προσθήκη της επισκευής στον πίνακα
-//         $repairs[] = $repair;
-//     }
-    
-//     // Επιστροφή των αντικειμένων Repair
-//     return $repairs;
-// }
 public function getAll() {
     $query = "
         SELECT repairs.*, 
-               customers.id AS customer_id, customers.type, customers.name, customers.email, customers.phone, customers.created_at AS customer_created_at,
-               motors.id AS motor_id, motors.serial_number, motors.manufacturer, motors.kw, motors.hp, motors.rpm, motors.step, motors.spiral, motors.cross_section, motors.connectionism, motors.volt, motors.poles, motors.created_at AS motor_created_at
+               customers.id AS customer_id, 
+               customers.type, 
+               customers.name, 
+               customers.email, 
+               customers.phone, 
+               customers.created_at AS customer_created_at,
+               motors.id AS motor_id, 
+               motors.serial_number, 
+               motors.manufacturer, 
+               motors.kw, 
+               motors.hp, 
+               motors.rpm, 
+               motors.step, 
+               motors.halfStep,
+               motors.helperStep,
+               motors.helperHalfStep,
+               motors.spiral, 
+               motors.halfSpiral,
+               motors.helperSpiral,
+               motors.helperHalfSpiral,
+               motors.cross_section, 
+               motors.halfCross_section,
+               motors.helperCross_section,
+               motors.helperHalfCross_section,
+               motors.connectionism, 
+               motors.volt, 
+               motors.poles,
+               motors.typeOfStep,
+               motors.typeOfMotor,
+               motors.typeOfVolt,
+               motors.created_at AS motor_created_at,
+               motors.customerID AS motor_customerID
         FROM repairs
         INNER JOIN customers ON repairs.customerID = customers.id
         INNER JOIN motors ON repairs.motorID = motors.id
+        ORDER BY repairs.created_at DESC
     ";
 
     $stmt = $this->conn->prepare($query);
@@ -99,12 +86,25 @@ public function getAll() {
             'hp' => $repairData['hp'],
             'rpm' => $repairData['rpm'],
             'step' => $repairData['step'],
+            'halfStep' => $repairData['halfStep'],
+            'helperStep' => $repairData['helperStep'],
+            'helperHalfStep' => $repairData['helperHalfStep'],
             'spiral' => $repairData['spiral'],
+            'halfSpiral' => $repairData['halfSpiral'],
+            'helperSpiral' => $repairData['helperSpiral'],
+            'helperHalfSpiral' => $repairData['helperHalfSpiral'],
             'cross_section' => $repairData['cross_section'],
+            'halfCross_section' => $repairData['halfCross_section'],
+            'helperCross_section' => $repairData['helperCross_section'],
+            'helperHalfCross_section' => $repairData['helperHalfCross_section'],
             'connectionism' => $repairData['connectionism'],
             'volt' => $repairData['volt'],
             'poles' => $repairData['poles'],
-            'created_at' => $repairData['created_at'],
+            'typeOfStep' => $repairData['typeOfStep'],
+            'typeOfMotor' => $repairData['typeOfMotor'],
+            'typeOfVolt' => $repairData['typeOfVolt'],
+            'created_at' => $repairData['motor_created_at'],
+            'customerID' => $repairData['motor_customerID'],
         ];
         $motor = new Motor($motorData);
         $repair->motor = $motor;
@@ -128,7 +128,8 @@ public function getAll() {
             }
             
             return new Repair($repairData);
-        }
+    }
+    
     public function createNewRepair($repairData, $customerData, $motorData, $repair_types) {
         try {
             $this->conn->beginTransaction();
@@ -196,9 +197,9 @@ public function getAll() {
             
             // 3. Δημιουργία της επισκευής
             $repairQuery = "INSERT INTO repairs (customerID, motorID, description, 
-                        repair_status, cost, created_at, estimatedIsComplete) 
+                        repair_status, cost, created_at, isArrived, estimatedIsComplete) 
                         VALUES (:customerID, :motorID, :description, :repair_status,
-                        :cost, :created_at, :estimatedIsComplete)";
+                        :cost, :created_at, :isArrived, :estimatedIsComplete)";
             $repairStmt = $this->conn->prepare($repairQuery);
             $repairStmt->bindParam(':customerID', $customerId);
             $repairStmt->bindParam(':motorID', $motorId);
@@ -206,6 +207,7 @@ public function getAll() {
             $repairStmt->bindParam(':repair_status', $repairData['repair_status']);
             $repairStmt->bindParam(':cost', $repairData['cost']);
             $repairStmt->bindParam(':created_at', $repairData['created_at']);
+            $repairStmt->bindParam(':isArrived', $repairData['isArrived']);
             $repairStmt->bindParam(':estimatedIsComplete', $repairData['estimatedIsComplete']);
             $repairStmt->execute();
             $repairId = $this->conn->lastInsertId();
