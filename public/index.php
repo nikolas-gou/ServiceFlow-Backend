@@ -1,4 +1,5 @@
 <?php
+
 use Slim\Factory\AppFactory;
 use App\Middleware\CorsMiddleware;
 

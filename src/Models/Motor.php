@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Models;
 
-class Motor {
+class Motor
+{
     public  $id;
     public $serial_number;
     public $manufacturer;
@@ -29,7 +31,8 @@ class Motor {
     public $created_at;
     public $customer_id;
 
-    public function __construct(array $data = []) {
+    public function __construct(array $data = [])
+    {
         $this->id = $data['id'] ?? null;
         $this->serial_number = $data['serial_number'] ?? null;
         $this->manufacturer = $data['manufacturer'] ?? "";
@@ -58,11 +61,13 @@ class Motor {
         $this->customer_id = $data['customer_id'] ?? null;
     }
 
-    public function isValid(): bool {
+    public function isValid(): bool
+    {
         return !empty(\trim($this->manufacturer)) && !empty(\trim($this->manufacturer));
     }
 
-    public function toArray(): array {
+    public function toArray(): array
+    {
         return [
             'id' => $this->id,
             'serial_number' => $this->serial_number,

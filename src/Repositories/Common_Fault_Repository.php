@@ -1,18 +1,22 @@
 <?php
+
 namespace App\Repositories;
 
 use App\Config\Database;
 use App\Models\Common_Fault;
 
-class Common_Fault_Repository {
+class Common_Fault_Repository
+{
     private $conn;
 
-    public function __construct() {
+    public function __construct()
+    {
         $database = new Database();
         $this->conn = $database->getConnection();
     }
 
-    public function getAll() {
+    public function getAll()
+    {
         $query = "SELECT * FROM common_faults";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -23,5 +27,4 @@ class Common_Fault_Repository {
             $common_faults[] = new Common_Fault($common_faultData);
         }
     }
-
 }

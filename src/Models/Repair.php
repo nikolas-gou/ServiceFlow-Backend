@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Models;
 
-class Repair {
+class Repair
+{
     public $id;
     public $motor_id;
     public $customer_id;
@@ -14,7 +16,8 @@ class Repair {
     public $customer;
     public $motor;
 
-    public function __construct(array $data = []) {
+    public function __construct(array $data = [])
+    {
         $this->id = $data['id'] ?? null;
         $this->motor_id = $data['motor_id'] ?? null;
         $this->customer_id = $data['customer_id'] ?? null;
@@ -26,7 +29,8 @@ class Repair {
         $this->estimated_is_complete = $data['estimated_is_complete'] ?? '';
     }
 
-    public function toArray(): array {
+    public function toArray(): array
+    {
         return [
             'id' => $this->id,
             'motor_id' => $this->motor_id,

@@ -1,17 +1,21 @@
 <?php
+
 namespace App\Repositories;
 
 use App\Config\Database;
 
-class StatsOfRepairRepository {
+class StatsOfRepairRepository
+{
     private $conn;
 
-    public function __construct() {
+    public function __construct()
+    {
         $database = new Database();
         $this->conn = $database->getConnection();
     }
 
-    public function getTotalRepairs() {
+    public function getTotalRepairs()
+    {
         $query = "SELECT COUNT(*) as total FROM repairs";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -28,7 +32,7 @@ class StatsOfRepairRepository {
     //         GROUP BY MONTH(created_at)
     //         ORDER BY MONTH(created_at)
     //     ";
-        
+
     //     $stmt = $this->conn->prepare($query);
     //     $stmt->execute();
     //     $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -46,7 +50,7 @@ class StatsOfRepairRepository {
 
     // public function getTotalRepairsByType() {
     // $query = "SELECT type, COUNT(*) as total FROM repairs GROUP BY type";
-        
+
     //     $stmt = $this->conn->prepare($query);
     //     $stmt->execute();
     //     $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);

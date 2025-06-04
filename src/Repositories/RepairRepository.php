@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Repositories;
 
 use App\Config\Database;
@@ -6,16 +7,19 @@ use App\Models\Repair;
 use App\Models\Customer;
 use App\Models\Motor;
 
-class RepairRepository {
+class RepairRepository
+{
     private $conn;
 
-    public function __construct() {
+    public function __construct()
+    {
         $database = new Database();
         $this->conn = $database->getConnection();
     }
 
-public function getAll() {
-    $query = "
+    public function getAll()
+    {
+        $query = "
         SELECT repairs.*, 
                customers.id AS customer_id, 
                customers.type, 
@@ -55,85 +59,87 @@ public function getAll() {
         ORDER BY repairs.created_at DESC
     ";
 
-    $stmt = $this->conn->prepare($query);
-    $stmt->execute();
-    $repairsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $repairsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-    $repairs = [];
+        $repairs = [];
 
-    foreach ($repairsData as $repairData) {
-        // Δημιουργία αντικειμένου Repair
-        $repair = new Repair($repairData);
+        foreach ($repairsData as $repairData) {
+            // Δημιουργία αντικειμένου Repair
+            $repair = new Repair($repairData);
 
-        // Δημιουργία αντικειμένου Customer
-        $customerData = [
-            'id' => $repairData['customer_id'],
-            'type' => $repairData['type'],
-            'name' => $repairData['name'],
-            'email' => $repairData['email'],
-            'phone' => $repairData['phone'],
-            'created_at' => $repairData['created_at'],
-        ];
-        $customer = new Customer($customerData);
-        $repair->customer = $customer;
+            // Δημιουργία αντικειμένου Customer
+            $customerData = [
+                'id' => $repairData['customer_id'],
+                'type' => $repairData['type'],
+                'name' => $repairData['name'],
+                'email' => $repairData['email'],
+                'phone' => $repairData['phone'],
+                'created_at' => $repairData['created_at'],
+            ];
+            $customer = new Customer($customerData);
+            $repair->customer = $customer;
 
-        // Δημιουργία αντικειμένου Motor
-        $motorData = [
-            'id' => $repairData['motor_id'],
-            'serial_number' => $repairData['serial_number'],
-            'manufacturer' => $repairData['manufacturer'],
-            'kw' => $repairData['kw'],
-            'hp' => $repairData['hp'],
-            'rpm' => $repairData['rpm'],
-            'step' => $repairData['step'],
-            'half_step' => $repairData['half_step'],
-            'helper_step' => $repairData['helper_step'],
-            'helper_half_step' => $repairData['helper_half_step'],
-            'spiral' => $repairData['spiral'],
-            'half_spiral' => $repairData['half_spiral'],
-            'helper_spiral' => $repairData['helper_spiral'],
-            'helper_half_spiral' => $repairData['helper_half_spiral'],
-            'cross_section' => $repairData['cross_section'],
-            'half_cross_section' => $repairData['half_cross_section'],
-            'helper_cross_section' => $repairData['helper_cross_section'],
-            'helper_half_cross_section' => $repairData['helper_half_cross_section'],
-            'connectionism' => $repairData['connectionism'],
-            'volt' => $repairData['volt'],
-            'poles' => $repairData['poles'],
-            'type_of_step' => $repairData['type_of_step'],
-            'type_of_motor' => $repairData['type_of_motor'],
-            'type_of_volt' => $repairData['type_of_volt'],
-            'created_at' => $repairData['motor_created_at'],
-            'customer_id' => $repairData['motor_customer_id'],
-        ];
-        $motor = new Motor($motorData);
-        $repair->motor = $motor;
+            // Δημιουργία αντικειμένου Motor
+            $motorData = [
+                'id' => $repairData['motor_id'],
+                'serial_number' => $repairData['serial_number'],
+                'manufacturer' => $repairData['manufacturer'],
+                'kw' => $repairData['kw'],
+                'hp' => $repairData['hp'],
+                'rpm' => $repairData['rpm'],
+                'step' => $repairData['step'],
+                'half_step' => $repairData['half_step'],
+                'helper_step' => $repairData['helper_step'],
+                'helper_half_step' => $repairData['helper_half_step'],
+                'spiral' => $repairData['spiral'],
+                'half_spiral' => $repairData['half_spiral'],
+                'helper_spiral' => $repairData['helper_spiral'],
+                'helper_half_spiral' => $repairData['helper_half_spiral'],
+                'cross_section' => $repairData['cross_section'],
+                'half_cross_section' => $repairData['half_cross_section'],
+                'helper_cross_section' => $repairData['helper_cross_section'],
+                'helper_half_cross_section' => $repairData['helper_half_cross_section'],
+                'connectionism' => $repairData['connectionism'],
+                'volt' => $repairData['volt'],
+                'poles' => $repairData['poles'],
+                'type_of_step' => $repairData['type_of_step'],
+                'type_of_motor' => $repairData['type_of_motor'],
+                'type_of_volt' => $repairData['type_of_volt'],
+                'created_at' => $repairData['motor_created_at'],
+                'customer_id' => $repairData['motor_customer_id'],
+            ];
+            $motor = new Motor($motorData);
+            $repair->motor = $motor;
 
-        $repairs[] = $repair;
+            $repairs[] = $repair;
+        }
+
+        return $repairs;
     }
-
-    return $repairs;
-}
 
     // future functions 
-    public function getRepairById($id) {
-            $query = "SELECT * FROM repairs WHERE id = :id";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
-            $stmt->execute();
-            $repairData = $stmt->fetch(\PDO::FETCH_ASSOC);
-            
-            if (!$repairData) {
-                return null;
-            }
-            
-            return new Repair($repairData);
+    public function getRepairById($id)
+    {
+        $query = "SELECT * FROM repairs WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
+        $stmt->execute();
+        $repairData = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$repairData) {
+            return null;
+        }
+
+        return new Repair($repairData);
     }
-    
-    public function createNewRepair($repairData, $customerData, $motorData, $common_faults) {
+
+    public function createNewRepair($repairData, $customerData, $motorData, $common_faults)
+    {
         try {
             $this->conn->beginTransaction();
-            
+
             // 1. Έλεγχος αν ο πελάτης υπάρχει ήδη ή δημιουργία νέου πελάτη
             $customer_id = null;
             if (isset($customerData['id']) && $customerData['id'] > 0) {
@@ -152,7 +158,7 @@ public function getAll() {
                 $customerStmt->execute();
                 $customer_id = $this->conn->lastInsertId();
             }
-            
+
             // 2. Έλεγχος αν ο κινητήρας υπάρχει ήδη ή δημιουργία νέου κινητήρα
             // Σχεδον παντα δεν θα υπαρχει ιδιος
             $motor_id = null;
@@ -194,7 +200,7 @@ public function getAll() {
                 $motorStmt->execute();
                 $motor_id = $this->conn->lastInsertId();
             }
-            
+
             // 3. Δημιουργία της επισκευής
             $repairQuery = "INSERT INTO repairs (customer_id, motor_id, description, 
                         repair_status, cost, created_at, is_arrived, estimated_is_complete) 
@@ -223,68 +229,67 @@ public function getAll() {
                     $commonFaultStmt->execute();
                 }
             }
-            
+
             $this->conn->commit();
-            
+
             // 4. Ανάκτηση πλήρους επισκευής με πελάτη και κινητήρα
             return $this->getRepairById($repair_id);
-            
         } catch (\Exception $e) {
             $this->conn->rollBack();
             throw $e;
         }
     }
-        
+
     // public function createCustomer(Customer $customer) {
     //     $query = "INSERT INTO customers (type, name, email, phone, created_at) 
     //             VALUES (:type, :name, :email, :phone, NOW())";
-        
+
     //     $stmt = $this->conn->prepare($query);
-        
+
     //     $name = $customer->name;
     //     $type = $customer->type;
     //     $email = $customer->email;
     //     $phone = $customer->phone;
-        
+
     //     $stmt->bindParam(':type', $type);
     //     $stmt->bindParam(':name', $name);
     //     $stmt->bindParam(':email', $email);
     //     $stmt->bindParam(':phone', $phone);
-        
+
     //     if ($stmt->execute()) {
     //         return $this->conn->lastInsertId();
     //     }
-        
+
     //     return false;
     // }
-    
+
     // public function updateCustomer(Customer $customer) {
     //     $query = "UPDATE customers 
     //             SET type = :type, name = :name, email = :email, phone = :phone 
     //             WHERE id = :id";
-        
+
     //     $stmt = $this->conn->prepare($query);
-        
+
     //     $id = $customer->id;
     //     $type = $customer->type;
     //     $name = $customer->name;
     //     $email = $customer->email;
     //     $phone = $customer->phone;
-        
+
     //     $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
     //     $stmt->bindParam(':type', $type);
     //     $stmt->bindParam(':name', $name);
     //     $stmt->bindParam(':email', $email);
     //     $stmt->bindParam(':phone', $phone);
-        
+
     //     return $stmt->execute();
     // }
-    
+
     // public function deleteCustomer($id) {
     //     $query = "DELETE FROM customers WHERE id = :id";
     //     $stmt = $this->conn->prepare($query);
     //     $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
-        
+
     //     return $stmt->execute();
     // }
 }

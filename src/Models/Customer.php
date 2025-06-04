@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Models;
 
-class Customer {
+class Customer
+{
     public $id;
     public $type;
     public $name;
@@ -9,7 +11,8 @@ class Customer {
     public $phone;
     public $created_at;
 
-    public function __construct(array $data = []) {
+    public function __construct(array $data = [])
+    {
         $this->id = $data['id'] ?? null;
         $this->type = $data['type'] ?? '';
         $this->name = $data['name'] ?? '';
@@ -18,11 +21,13 @@ class Customer {
         $this->created_at = $data['created_at'] ?? null;
     }
 
-    public function isValid(): bool {
+    public function isValid(): bool
+    {
         return !empty(\trim($this->name)) && !empty(\trim($this->phone));
     }
 
-    public function toArray(): array {
+    public function toArray(): array
+    {
         return [
             'id' => $this->id,
             'type' => $this->type,

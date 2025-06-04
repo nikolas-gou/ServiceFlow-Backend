@@ -1,24 +1,29 @@
 <?php
+
 namespace App\Repositories;
 
 use App\Config\Database;
 
-class StatsOfCustomerRepository {
+class StatsOfCustomerRepository
+{
     private $conn;
 
-    public function __construct() {
+    public function __construct()
+    {
         $database = new Database();
         $this->conn = $database->getConnection();
     }
 
-    public function getAllStats() {
+    public function getAllStats()
+    {
         $query = "SELECT * FROM customers";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function getTotalCustomers() {
+    public function getTotalCustomers()
+    {
         $query = "SELECT COUNT(*) as total FROM customers";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -26,7 +31,8 @@ class StatsOfCustomerRepository {
         return $result['total'] ?? 0;
     }
 
-    public function getCustomersPerMonth() {
+    public function getCustomersPerMonth()
+    {
         $query = "
             SELECT MONTH(created_at) - 1 AS month, COUNT(*) AS total 
             FROM customers 
@@ -34,7 +40,7 @@ class StatsOfCustomerRepository {
             GROUP BY MONTH(created_at)
             ORDER BY MONTH(created_at)
         ";
-        
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -50,9 +56,10 @@ class StatsOfCustomerRepository {
         return $months;
     }
 
-    public function getTotalCustomersByType() {
-    $query = "SELECT type, COUNT(*) as total FROM customers GROUP BY type";
-        
+    public function getTotalCustomersByType()
+    {
+        $query = "SELECT type, COUNT(*) as total FROM customers GROUP BY type";
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);

@@ -1,18 +1,22 @@
 <?php
+
 namespace App\Controllers;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Repositories\StatsOfRepairRepository;
 
-class StatsOfRepairController {
+class StatsOfRepairController
+{
     private $statsOfRepairRepository;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->statsOfRepairRepository = new StatsOfRepairRepository();
     }
 
-    public function stats(Request $request, Response $response) {
+    public function stats(Request $request, Response $response)
+    {
         $stats = $this->statsOfRepairRepository->getTotalRepairs();
         $response->getBody()->write(json_encode($stats, JSON_UNESCAPED_UNICODE));
         return $response->withHeader('Content-Type', 'application/json');
