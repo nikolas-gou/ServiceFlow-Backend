@@ -1,7 +1,7 @@
 <?php
 namespace App\Models;
 
-class Repair_Types {
+class Common_Fault {
     public $id;
     public $name;
 

@@ -47,7 +47,7 @@ class RepairController {
                 $data['repair'],
                 $data['customer'],
                 $data['motor'],
-                $data["repair_types"]
+                $data["common_faults"]
             );
             
             // Επιτυχής απάντηση

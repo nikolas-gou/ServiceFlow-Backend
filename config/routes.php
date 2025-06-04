@@ -5,7 +5,7 @@ use App\Controllers\MotorController;
 use App\Controllers\RepairController;
 use App\Controllers\StatsOfCustomerController;
 use App\Controllers\StatsOfRepairController;
-use App\Controllers\Repair_TypesController;
+use App\Controllers\Common_Fault_Controller;
 
 $app->options('/{routes:.+}', function ($request, $response) {
     return $response;
@@ -27,8 +27,8 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     $group->post('/repairs', [RepairController::class, 'createRepair']);
     $group->get('/repairs/{id}', [RepairController::class, 'getRepairById']);
 
-    // Repair_Types
-    $group->get('/repair_types', [Repair_TypesController::class, 'getAll']);
+    // Common Faults
+    $group->get('/common_faults', [Common_Fault_Controller::class, 'getAll']);
 
     // Stats
     $group->get('/statsOfCustomers', [StatsOfCustomerController::class, 'stats']);

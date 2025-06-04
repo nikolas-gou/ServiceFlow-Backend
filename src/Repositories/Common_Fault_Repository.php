@@ -2,9 +2,9 @@
 namespace App\Repositories;
 
 use App\Config\Database;
-use App\Models\Repair_Types;
+use App\Models\Common_Fault;
 
-class Repair_TypesRepository {
+class Common_Fault_Repository {
     private $conn;
 
     public function __construct() {
@@ -13,14 +13,14 @@ class Repair_TypesRepository {
     }
 
     public function getAll() {
-        $query = "SELECT * FROM repair_types";
+        $query = "SELECT * FROM common_faults";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        $repair_types = [];
-        foreach ($repair_typesData as $repair_typeData) {
-            $repair_types[] = new Repair_Types($repair_typeData);
+        $common_faults = [];
+        foreach ($common_faultsData as $common_faultData) {
+            $common_faults[] = new Common_Fault($common_faultData);
         }
     }
 

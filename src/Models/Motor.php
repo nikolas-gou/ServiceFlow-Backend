@@ -9,25 +9,25 @@ class Motor {
     public $hp;
     public $rpm;
     public $step;
-    public $halfStep;
-    public $helperStep;
-    public $helperHalfStep;
+    public $half_step;
+    public $helper_step;
+    public $helper_half_step;
     public $spiral;
-    public $halfSpiral;
-    public $helperSpiral;
-    public $helperHalfSpiral;
+    public $half_spiral;
+    public $helper_spiral;
+    public $helper_half_spiral;
     public $cross_section;
-    public $halfCross_section;
-    public $helperCross_section;
-    public $helperHalfCross_section;
+    public $half_cross_section;
+    public $helper_cross_section;
+    public $helper_half_cross_section;
     public $connectionism;
     public $volt;
     public $poles;
-    public $typeOfStep;
-    public $typeOfMotor;
-    public $typeOfVolt;
+    public $type_of_step;
+    public $type_of_motor;
+    public $type_of_volt;
     public $created_at;
-    public $customerID;
+    public $customer_id;
 
     public function __construct(array $data = []) {
         $this->id = $data['id'] ?? null;
@@ -37,25 +37,25 @@ class Motor {
         $this->hp = $data['hp'] ?? null;
         $this->rpm = $data['rpm'] ?? null;
         $this->step = $data['step'] ?? null;
-        $this->halfStep = $data['halfStep'] ?? null;
-        $this->helperStep = $data['helperStep'] ?? null;
-        $this->helperHalfStep = $data['helperHalfStep'] ?? null;
+        $this->half_step = $data['half_step'] ?? null;
+        $this->helper_step = $data['helper_step'] ?? null;
+        $this->helper_half_step = $data['helper_half_step'] ?? null;
         $this->spiral = $data['spiral'] ?? null;
-        $this->halfSpiral = $data['halfSpiral'] ?? null;
-        $this->helperSpiral = $data['helperSpiral'] ?? null;
-        $this->helperHalfSpiral = $data['helperHalfSpiral'] ?? null;
+        $this->half_spiral = $data['half_spiral'] ?? null;
+        $this->helper_spiral = $data['helper_spiral'] ?? null;
+        $this->helper_half_spiral = $data['helper_half_spiral'] ?? null;
         $this->cross_section = $data['cross_section'] ?? null;
-        $this->halfCross_section = $data['halfCross_section'] ?? null;
-        $this->helperCross_section = $data['helperCross_section'] ?? null;
-        $this->helperHalfCross_section = $data['helperHalfCross_section'] ?? null;
+        $this->half_cross_section = $data['half_cross_section'] ?? null;
+        $this->helper_cross_section = $data['helper_cross_section'] ?? null;
+        $this->helper_half_cross_section = $data['helper_half_cross_section'] ?? null;
         $this->connectionism = $data['connectionism'] ?? "simple";
         $this->volt = $data['volt'] ?? "380VY";
         $this->poles = $data['poles'] ?? null;
-        $this->typeOfStep = $data['typeOfStep'] ?? "standard";
-        $this->typeOfMotor = $data['typeOfMotor'] ?? "el_motor";
-        $this->typeOfVolt = $data['typeOfVolt'] ?? "3-phase";
+        $this->type_of_step = $data['type_of_step'] ?? "standard";
+        $this->type_of_motor = $data['type_of_motor'] ?? "el_motor";
+        $this->type_of_volt = $data['type_of_volt'] ?? "3-phase";
         $this->created_at = $data['created_at'] ?? "";
-        $this->customerID = $data['customerID'] ?? null;
+        $this->customer_id = $data['customer_id'] ?? null;
     }
 
     public function isValid(): bool {
@@ -71,25 +71,25 @@ class Motor {
             'hp' => $this->hp,
             'rpm' => $this->rpm,
             'step' => $this->step,
-            'halfStep' => $this->halfStep,
-            'helperStep' => $this->helperStep,
-            'helperHalfStep' => $this->helperHalfStep,
+            'half_step' => $this->half_step,
+            'helper_step' => $this->helper_step,
+            'helper_half_step' => $this->helper_half_step,
             'spiral' => $this->spiral,
-            'halfSpiral' => $this->halfSpiral,
-            'helperSpiral' => $this->helperSpiral,
-            'helperHalfSpiral' => $this->helperHalfSpiral,
+            'half_spiral' => $this->half_spiral,
+            'helper_spiral' => $this->helper_spiral,
+            'helper_half_spiral' => $this->helper_half_spiral,
             'cross_section' => $this->cross_section,
-            'halfCross_section' => $this->halfCross_section,
-            'helperCross_section' => $this->helperCross_section,
-            'helperHalfCross_section' => $this->helperHalfCross_section,
+            'half_cross_section' => $this->half_cross_section,
+            'helper_cross_section' => $this->helper_cross_section,
+            'helper_half_cross_section' => $this->helper_half_cross_section,
             'connectionism' => $this->connectionism,
             'volt' => $this->volt,
             'poles' => $this->poles,
-            'typeOfStep' => $this->typeOfStep,
-            "typeOfMotor" => $this->typeOfMotor,
-            "typeOfVolt" => $this->typeOfVolt,
+            'type_of_step' => $this->type_of_step,
+            "type_of_motor" => $this->type_of_motor,
+            "type_of_volt" => $this->type_of_volt,
             'created_at' => $this->created_at,
-            'customerID' => $this->customerID,
+            'customer_id' => $this->customer_id,
         ];
     }
 }
