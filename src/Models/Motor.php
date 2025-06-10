@@ -25,6 +25,7 @@ class Motor
     public $connectionism;
     public $volt;
     public $poles;
+    public $how_many_coils_with;
     public $type_of_step;
     public $type_of_motor;
     public $type_of_volt;
@@ -54,6 +55,7 @@ class Motor
         $this->connectionism = $data['connectionism'] ?? "simple";
         $this->volt = $data['volt'] ?? "380VY";
         $this->poles = $data['poles'] ?? null;
+        $this->how_many_coils_with = $data['how_many_coils_with'] ?? 1;
         $this->type_of_step = $data['type_of_step'] ?? "standard";
         $this->type_of_motor = $data['type_of_motor'] ?? "el_motor";
         $this->type_of_volt = $data['type_of_volt'] ?? "3-phase";
@@ -90,6 +92,7 @@ class Motor
             'connectionism' => $this->connectionism,
             'volt' => $this->volt,
             'poles' => $this->poles,
+            'how_many_coils_with' => $this->how_many_coils_with,
             'type_of_step' => $this->type_of_step,
             "type_of_motor" => $this->type_of_motor,
             "type_of_volt" => $this->type_of_volt,
