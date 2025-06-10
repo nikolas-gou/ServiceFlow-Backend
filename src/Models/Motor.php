@@ -31,6 +31,7 @@ class Motor
     public $type_of_volt;
     public $created_at;
     public $customer_id;
+    public $motor_cross_section_links;
 
     public function __construct(array $data = [])
     {
@@ -98,6 +99,7 @@ class Motor
             "type_of_volt" => $this->type_of_volt,
             'created_at' => $this->created_at,
             'customer_id' => $this->customer_id,
+            "motor_cross_section_links" => $this->motor_cross_section_links ? $this->motor_cross_section_links->toArray() : null
         ];
     }
 }

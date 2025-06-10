@@ -6,6 +6,7 @@ use App\Config\Database;
 use App\Models\Repair;
 use App\Models\Customer;
 use App\Models\Motor;
+use App\Models\Motor_Cross_Section_Links;
 
 class RepairRepository
 {
@@ -52,10 +53,15 @@ class RepairRepository
                motors.type_of_motor,
                motors.type_of_volt,
                motors.created_at AS motor_created_at,
-               motors.customer_id AS motor_customer_id
+               motors.customer_id AS motor_customer_id,
+               motor_cross_section_links.id AS cross_section_link_id,
+               motor_cross_section_links.cross_section,
+               motor_cross_section_links.type AS cross_section_type
+
         FROM repairs
         INNER JOIN customers ON repairs.customer_id = customers.id
         INNER JOIN motors ON repairs.motor_id = motors.id
+        LEFT JOIN motor_cross_section_links ON motors.id = motor_cross_section_links.motor_id
         ORDER BY repairs.created_at DESC
     ";
 
@@ -112,6 +118,16 @@ class RepairRepository
             ];
             $motor = new Motor($motorData);
             $repair->motor = $motor;
+
+            // Δημιουργία αντικειμένου Motor_Cross_Section_Links
+            $motor_cross_section_linksData = [
+                'id' => $repairData['cross_section_link_id'],
+                'motor_id' => $repairData['customer_id'],
+                'cross_section' => $repairData['cross_section'],
+                'type' => $repairData['cross_section_type'],
+            ];
+            $motor_cross_section_links = new Motor_Cross_Section_Links($motor_cross_section_linksData);
+            $repair->motor->motor_cross_section_links = $motor_cross_section_links;
 
             $repairs[] = $repair;
         }
