@@ -29,6 +29,25 @@ class Repair
         $this->estimated_is_complete = $data['estimated_is_complete'] ?? '';
     }
 
+
+
+    public static function fromFrontendFormat(array $frontendData): self
+    {
+        $dbData = [
+            'id' => $frontendData['id'] ?? null,
+            'motor_id' => $frontendData['motorID'] ?? null,
+            'customer_id' => $frontendData['customerID'] ?? null,
+            'repair_status' => $frontendData['repairStatus'] ?? '',
+            'created_at' => $frontendData['createdAt'] ?? '',
+            'is_arrived' => $frontendData['isArrived'] ?? '',
+            'description' => $frontendData['description'] ?? '',
+            'cost' => $frontendData['cost'] ?? '',
+            'estimated_is_complete' => $frontendData['estimatedIsComplete'] ?? '',
+        ];
+
+        return new self($dbData);
+    }
+
     public function toArray(): array
     {
         return [
