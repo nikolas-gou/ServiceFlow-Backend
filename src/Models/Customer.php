@@ -21,6 +21,20 @@ class Customer
         $this->created_at = $data['created_at'] ?? null;
     }
 
+    public static function fromFrontendFormat(array $frontendData): self
+    {
+        $dbData = [
+            'id' => $frontendData['id'] ?? null,
+            'type' => $frontendData['type'] ?? '',
+            'name' => $frontendData['name'] ?? '',
+            'email' => $frontendData['email'] ?? '',
+            'phone' => $frontendData['phone'] ?? '',
+            'created_at' => $frontendData['createdAt'] ?? '',
+        ];
+
+        return new self($dbData);
+    }
+
     public function isValid(): bool
     {
         return !empty(\trim($this->name)) && !empty(\trim($this->phone));
