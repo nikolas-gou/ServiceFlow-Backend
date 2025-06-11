@@ -62,6 +62,43 @@ class Motor
         $this->type_of_volt = $data['type_of_volt'] ?? "3-phase";
         $this->created_at = $data['created_at'] ?? "";
         $this->customer_id = $data['customer_id'] ?? null;
+        $this->motor_cross_section_links = $data['motor_cross_section_links'] ?? null;
+    }
+
+    public static function fromFrontendFormat(array $frontendData): self
+    {
+        $dbData = [
+            'id' => $frontendData['id'] ?? null,
+            'serial_number' => $frontendData['serialNumber'] ?? null,
+            'manufacturer' => $frontendData['manufacturer'] ?? '',
+            'kw' => $frontendData['kw'] ?? null,
+            'hp' => $frontendData['hp'] ?? null,
+            'rpm' => $frontendData['rpm'] ?? '1490',
+            'step' => $frontendData['step'] ?? null,
+            'half_step' => $frontendData['halfStep'] ?? null,
+            'helper_step' => $frontendData['helperStep'] ?? null,
+            'helper_half_step' => $frontendData['helperHalfStep'] ?? null,
+            'spiral' => $frontendData['spiral'] ?? null,
+            'half_spiral' => $frontendData['halfSpiral'] ?? null,
+            'helper_spiral' => $frontendData['helperSpiral'] ?? null,
+            'helper_half_spiral' => $frontendData['helperHalfSpiral'] ?? null,
+            'cross_section' => $frontendData['crossSection'] ?? null,
+            'half_cross_section' => $frontendData['halfCrossSection'] ?? null,
+            'helper_cross_section' => $frontendData['helperCrossSection'] ?? null,
+            'helper_half_cross_section' => $frontendData['helperHalfCrossSection'] ?? null,
+            'connectionism' => $frontendData['connectionism'] ?? 'simple',
+            'volt' => $frontendData['volt'] ?? '380VY',
+            'poles' => $frontendData['poles'] ?? '6',
+            'how_many_coils_with' => $frontendData['howManyCoilsWith'] ?? '1',
+            'type_of_step' => $frontendData['typeOfStep'] ?? 'standard',
+            'type_of_motor' => $frontendData['typeOfMotor'] ?? 'el_motor',
+            'type_of_volt' => $frontendData['typeOfVolt'] ?? '3-phase',
+            'created_at' => $frontendData['createdAt'] ?? null,
+            'customer_id' => $frontendData['customerID'] ?? null,
+            'motor_cross_section_links' => $frontendData['motorCrossSectionLinks'] ?? [],
+        ];
+
+        return new self($dbData);
     }
 
     public function isValid(): bool
