@@ -48,6 +48,23 @@ class Repair
         return new self($dbData);
     }
 
+    public function toFrontendFormat(): array
+    {
+        return [
+            'id' => $this->id,
+            'motorID' => $this->motor_id,
+            'customerID' => $this->customer_id,
+            'repairStatus' => $this->repair_status,
+            'createdAt' => $this->created_at,
+            'isArrived' => $this->is_arrived,
+            'estimatedIsComplete' => $this->estimated_is_complete,
+            'description' => $this->description,
+            'cost' => $this->cost,
+            'customer' => $this->customer ? $this->customer->toFrontendFormat() : null,
+            'motor' => $this->motor ? $this->motor->toFrontendFormat() : null
+        ];
+    }
+
     public function toArray(): array
     {
         return [
