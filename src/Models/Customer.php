@@ -35,6 +35,19 @@ class Customer
         return new self($dbData);
     }
 
+    public function toFrontendFormat(): array
+    {
+        return [
+            'id' => $this->id,
+            'type' => $this->type,
+            'name' => $this->name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'createdAt' => $this->created_at
+        ];
+    }
+
+
     public function isValid(): bool
     {
         return !empty(\trim($this->name)) && !empty(\trim($this->phone));
