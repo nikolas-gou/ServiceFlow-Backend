@@ -26,4 +26,24 @@ class Motor_Cross_Section_Links
             "type" => $this->type
         ];
     }
+
+    public static function fromFrontendFormat(array $frontendData): self
+    {
+        return new self([
+            'id' => $frontendData['id'] ?? null,
+            'motor_id' => $frontendData['motorID'] ?? null,
+            'cross_section' => $frontendData['crossSection'] ?? null,
+            'type' => $frontendData['type'] ?? 'standard'
+        ]);
+    }
+
+    public function toFrontendFormat(): array
+    {
+        return [
+            'id' => $this->id,
+            'motorID' => $this->motor_id,
+            'crossSection' => $this->cross_section,
+            'type' => $this->type
+        ];
+    }
 }
