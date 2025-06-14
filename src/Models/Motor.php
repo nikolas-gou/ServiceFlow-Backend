@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Motor_Cross_Section_Links;
+
 class Motor
 {
     public  $id;
@@ -18,10 +20,6 @@ class Motor
     public $half_spiral;
     public $helper_spiral;
     public $helper_half_spiral;
-    public $cross_section;
-    public $half_cross_section;
-    public $helper_cross_section;
-    public $helper_half_cross_section;
     public $connectionism;
     public $volt;
     public $poles;
@@ -49,10 +47,6 @@ class Motor
         $this->half_spiral = $data['half_spiral'] ?? null;
         $this->helper_spiral = $data['helper_spiral'] ?? null;
         $this->helper_half_spiral = $data['helper_half_spiral'] ?? null;
-        $this->cross_section = $data['cross_section'] ?? null;
-        $this->half_cross_section = $data['half_cross_section'] ?? null;
-        $this->helper_cross_section = $data['helper_cross_section'] ?? null;
-        $this->helper_half_cross_section = $data['helper_half_cross_section'] ?? null;
         $this->connectionism = $data['connectionism'] ?? "simple";
         $this->volt = $data['volt'] ?? "380VY";
         $this->poles = $data['poles'] ?? null;
@@ -82,10 +76,6 @@ class Motor
             'half_spiral' => $frontendData['halfSpiral'] ?? null,
             'helper_spiral' => $frontendData['helperSpiral'] ?? null,
             'helper_half_spiral' => $frontendData['helperHalfSpiral'] ?? null,
-            'cross_section' => $frontendData['crossSection'] ?? null,
-            'half_cross_section' => $frontendData['halfCrossSection'] ?? null,
-            'helper_cross_section' => $frontendData['helperCrossSection'] ?? null,
-            'helper_half_cross_section' => $frontendData['helperHalfCrossSection'] ?? null,
             'connectionism' => $frontendData['connectionism'] ?? 'simple',
             'volt' => $frontendData['volt'] ?? '380VY',
             'poles' => $frontendData['poles'] ?? '6',
@@ -95,11 +85,46 @@ class Motor
             'type_of_volt' => $frontendData['typeOfVolt'] ?? '3-phase',
             'created_at' => $frontendData['createdAt'] ?? null,
             'customer_id' => $frontendData['customerID'] ?? null,
-            'motor_cross_section_links' => $frontendData['motorCrossSectionLinks'] ?? [],
+            'motor_cross_section_links' => isset($frontendData['motorCrossSectionLinks']) && is_array($frontendData['motorCrossSectionLinks'])
+                ? array_map(fn($linkData) => Motor_Cross_Section_Links::fromFrontendFormat($linkData), $frontendData['motorCrossSectionLinks'])
+                : []
         ];
 
         return new self($dbData);
     }
+
+    public function toFrontendFormat(): array
+    {
+        return [
+            'id' => $this->id,
+            'serialNumber' => $this->serial_number,
+            'manufacturer' => $this->manufacturer,
+            'kw' => $this->kw,
+            'hp' => $this->hp,
+            'rpm' => $this->rpm,
+            'step' => $this->step,
+            'halfStep' => $this->half_step,
+            'helperStep' => $this->helper_step,
+            'helperHalfStep' => $this->helper_half_step,
+            'spiral' => $this->spiral,
+            'halfSpiral' => $this->half_spiral,
+            'helperSpiral' => $this->helper_spiral,
+            'helperHalfSpiral' => $this->helper_half_spiral,
+            'connectionism' => $this->connectionism,
+            'volt' => $this->volt,
+            'poles' => $this->poles,
+            'howManyCoilsWith' => $this->how_many_coils_with,
+            'typeOfStep' => $this->type_of_step,
+            'typeOfMotor' => $this->type_of_motor,
+            'typeOfVolt' => $this->type_of_volt,
+            'createdAt' => $this->created_at,
+            'customerID' => $this->customer_id,
+            'motorCrossSectionLinks' => is_array($this->motor_cross_section_links)
+                ? array_map(fn($link) => $link->toFrontendFormat(), $this->motor_cross_section_links)
+                : []
+        ];
+    }
+
 
     public function isValid(): bool
     {
@@ -123,10 +148,6 @@ class Motor
             'half_spiral' => $this->half_spiral,
             'helper_spiral' => $this->helper_spiral,
             'helper_half_spiral' => $this->helper_half_spiral,
-            'cross_section' => $this->cross_section,
-            'half_cross_section' => $this->half_cross_section,
-            'helper_cross_section' => $this->helper_cross_section,
-            'helper_half_cross_section' => $this->helper_half_cross_section,
             'connectionism' => $this->connectionism,
             'volt' => $this->volt,
             'poles' => $this->poles,
