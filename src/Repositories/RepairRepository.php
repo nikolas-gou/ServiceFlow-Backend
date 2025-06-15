@@ -5,8 +5,11 @@ namespace App\Repositories;
 use App\Config\Database;
 use App\Models\Repair;
 use App\Models\Customer;
+use App\Repositories\CustomerRepository;
 use App\Models\Motor;
+use App\Repositories\MotorRepository;
 use App\Models\Motor_Cross_Section_Links;
+use App\Models\Repair_Fault_Links;
 
 class RepairRepository
 {
@@ -18,53 +21,10 @@ class RepairRepository
         $this->conn = $database->getConnection();
     }
 
-    public function getAll()
+    public function getAll(bool $toFrontendFormat = true)
     {
-        $query = "
-        SELECT repairs.*, 
-               customers.id AS customer_id, 
-               customers.type, 
-               customers.name, 
-               customers.email, 
-               customers.phone, 
-               customers.created_at AS customer_created_at,
-               motors.id AS motor_id, 
-               motors.serial_number, 
-               motors.manufacturer, 
-               motors.kw, 
-               motors.hp, 
-               motors.rpm, 
-               motors.step, 
-               motors.half_step,
-               motors.helper_step,
-               motors.helper_half_step,
-               motors.spiral, 
-               motors.half_spiral,
-               motors.helper_spiral,
-               motors.helper_half_spiral,
-               motors.cross_section, 
-               motors.half_cross_section,
-               motors.helper_cross_section,
-               motors.helper_half_cross_section,
-               motors.connectionism, 
-               motors.volt, 
-               motors.poles,
-               motors.type_of_step,
-               motors.type_of_motor,
-               motors.type_of_volt,
-               motors.created_at AS motor_created_at,
-               motors.customer_id AS motor_customer_id,
-               motor_cross_section_links.id AS cross_section_link_id,
-               motor_cross_section_links.cross_section,
-               motor_cross_section_links.type AS cross_section_type
-
-        FROM repairs
-        INNER JOIN customers ON repairs.customer_id = customers.id
-        INNER JOIN motors ON repairs.motor_id = motors.id
-        LEFT JOIN motor_cross_section_links ON motors.id = motor_cross_section_links.motor_id
-        ORDER BY repairs.created_at DESC
-    ";
-
+        // Το query που φερνει ολες τις επισκευες
+        $query = file_get_contents(__DIR__ . '/../Queries/Repair/getAll.sql');
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $repairsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -82,7 +42,7 @@ class RepairRepository
                 'name' => $repairData['name'],
                 'email' => $repairData['email'],
                 'phone' => $repairData['phone'],
-                'created_at' => $repairData['created_at'],
+                'created_at' => $repairData['customer_created_at'],
             ];
             $customer = new Customer($customerData);
             $repair->customer = $customer;
@@ -103,10 +63,6 @@ class RepairRepository
                 'half_spiral' => $repairData['half_spiral'],
                 'helper_spiral' => $repairData['helper_spiral'],
                 'helper_half_spiral' => $repairData['helper_half_spiral'],
-                'cross_section' => $repairData['cross_section'],
-                'half_cross_section' => $repairData['half_cross_section'],
-                'helper_cross_section' => $repairData['helper_cross_section'],
-                'helper_half_cross_section' => $repairData['helper_half_cross_section'],
                 'connectionism' => $repairData['connectionism'],
                 'volt' => $repairData['volt'],
                 'poles' => $repairData['poles'],
@@ -117,19 +73,42 @@ class RepairRepository
                 'customer_id' => $repairData['motor_customer_id'],
             ];
             $motor = new Motor($motorData);
+
+            // Επεξεργασία των διατομών από JSON
+            $crossSectionsJson = $repairData['cross_sections_json'];
+            $crossSectionsArray = json_decode($crossSectionsJson, true);
+
+            $motorCrossSectionLinks = [];
+            if ($crossSectionsArray && is_array($crossSectionsArray)) {
+                foreach ($crossSectionsArray as $crossSectionData) {
+                    if ($crossSectionData !== null) {
+                        $motorCrossSectionLinks[] = new Motor_Cross_Section_Links($crossSectionData);
+                    }
+                }
+            }
+
+            $motor->motor_cross_section_links = $motorCrossSectionLinks;
             $repair->motor = $motor;
 
-            // Δημιουργία αντικειμένου Motor_Cross_Section_Links
-            $motor_cross_section_linksData = [
-                'id' => $repairData['cross_section_link_id'],
-                'motor_id' => $repairData['customer_id'],
-                'cross_section' => $repairData['cross_section'],
-                'type' => $repairData['cross_section_type'],
-            ];
-            $motor_cross_section_links = new Motor_Cross_Section_Links($motor_cross_section_linksData);
-            $repair->motor->motor_cross_section_links = $motor_cross_section_links;
+            // Επεξεργασία των βλαβών από JSON
+            $repair_fault_linksJSON = $repairData['repair_fault_links_json'];
+            $repair_fault_linksArray = json_decode($repair_fault_linksJSON, true);
 
-            $repairs[] = $repair;
+            $repair_fault_links = [];
+            if ($repair_fault_linksArray && is_array($repair_fault_linksArray)) {
+                foreach ($repair_fault_linksArray as $repair_fault_linksData) {
+                    if ($repair_fault_linksData !== null) {
+                        $repair_fault_links[] = new Repair_Fault_Links($repair_fault_linksData);
+                    }
+                }
+            }
+            $repair->repair_fault_links = $repair_fault_links;
+
+            if ($toFrontendFormat) {
+                $repairs[] = $repair->toFrontendFormat();
+            } else {
+                $repairs[] = $repair;
+            }
         }
 
         return $repairs;
@@ -138,6 +117,7 @@ class RepairRepository
     // future functions 
     public function getRepairById($id)
     {
+        // Φέρνουμε το repair
         $query = "SELECT * FROM repairs WHERE id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
@@ -148,76 +128,58 @@ class RepairRepository
             return null;
         }
 
-        return new Repair($repairData);
+        // Δημιουργούμε το Repair αντικείμενο
+        $repair = new Repair($repairData);
+        $motor = new MotorRepository();
+        $customer = new CustomerRepository();
+
+        // Φέρνουμε το αντίστοιχο Motor
+        if (!empty($repair->motor_id)) {
+            $repair->motor = $motor->getMotorById($repair->motor_id);
+        }
+
+        // Φέρνουμε το αντίστοιχο Motor
+        if (!empty($repair->customer_id)) {
+            $repair->customer = $customer->getCustomerById($repair->customer_id);
+        }
+
+        // Φέρνουμε το αντίστοιχο Motor
+        $repairFaultLinksRepo = new Repair_Fault_Links_Repository();
+        $repair->repair_fault_links = $repairFaultLinksRepo->getByRepairId($id);
+
+        return $repair;
     }
 
-    public function createNewRepair($repairData, $customerData, $motorData, $common_faults)
+
+    public function createNewRepair($repairData)
     {
         try {
             $this->conn->beginTransaction();
 
             // 1. Έλεγχος αν ο πελάτης υπάρχει ήδη ή δημιουργία νέου πελάτη
             $customer_id = null;
-            if (isset($customerData['id']) && $customerData['id'] > 0) {
+            if (isset($repairData->customer->id) && $repairData->customer->id > 0) {
                 // Χρήση υπάρχοντος πελάτη
-                $customer_id = $customerData['id'];
+                $customer_id = $repairData->customer->id;
             } else {
                 // Δημιουργία νέου πελάτη
-                $customerQuery = "INSERT INTO customers (type, name, email, phone, created_at) 
-                                VALUES (:type, :name, :email, :phone, :created_at)";
-                $customerStmt = $this->conn->prepare($customerQuery);
-                $customerStmt->bindParam(':type', $customerData['type']);
-                $customerStmt->bindParam(':name', $customerData['name']);
-                $customerStmt->bindParam(':email', $customerData['email']);
-                $customerStmt->bindParam(':phone', $customerData['phone']);
-                $customerStmt->bindParam(':created_at', $customerData['created_at']);
-                $customerStmt->execute();
-                $customer_id = $this->conn->lastInsertId();
+                $customerRepo = new CustomerRepository();
+                $customer_id = $customerRepo->createCustomer($repairData->customer);
             }
 
             // 2. Έλεγχος αν ο κινητήρας υπάρχει ήδη ή δημιουργία νέου κινητήρα
             // Σχεδον παντα δεν θα υπαρχει ιδιος
             $motor_id = null;
-            if (isset($motorData['id']) && $motorData['id'] > 0) {
+            if (isset($repairData->motor->id) && $repairData->motor->id > 0) {
                 // Χρήση υπάρχοντος κινητήρα
-                $motor_id = $motorData['id'];
+                $motor_id = $repairData->motor->id;
             } else {
                 // Δημιουργία νέου κινητήρα
-                $motorQuery = "INSERT INTO motors (customer_id, serial_number, manufacturer, kw, hp, rpm, step, half_step, helper_step, helper_half_step, spiral, half_spiral, helper_spiral, helper_half_spiral, 
-                            cross_section, half_cross_section, helper_cross_section, helper_half_cross_section, connectionism, volt, poles, type_of_motor, type_of_volt, type_of_step, created_at) 
-                            VALUES (:customer_id, :serial_number, :manufacturer, :kw, :hp, :rpm, :step, :half_step, :helper_step, :helper_half_step, :spiral, :half_spiral, :helper_spiral, :helper_half_spiral,
-                            :cross_section, :half_cross_section, :helper_cross_section, :helper_half_cross_section, :connectionism, :volt, :poles, :type_of_motor, :type_of_volt, :type_of_step, :created_at)";
-                $motorStmt = $this->conn->prepare($motorQuery);
-                $motorStmt->bindParam(':customer_id', $customer_id);
-                $motorStmt->bindParam(':serial_number', $motorData['serial_number']);
-                $motorStmt->bindParam(':manufacturer', $motorData['manufacturer']);
-                $motorStmt->bindParam(':kw', $motorData['kw']);
-                $motorStmt->bindParam(':hp', $motorData['hp']);
-                $motorStmt->bindParam(':rpm', $motorData['rpm']);
-                $motorStmt->bindParam(':step', $motorData['step']);
-                $motorStmt->bindParam(':half_step', $motorData['half_step']);
-                $motorStmt->bindParam(':helper_step', $motorData['helper_step']);
-                $motorStmt->bindParam(':helper_half_step', $motorData['helper_half_step']);
-                $motorStmt->bindParam(':spiral', $motorData['spiral']);
-                $motorStmt->bindParam(':half_spiral', $motorData['half_spiral']);
-                $motorStmt->bindParam(':helper_spiral', $motorData['helper_spiral']);
-                $motorStmt->bindParam(':helper_half_spiral', $motorData['helper_half_spiral']);
-                $motorStmt->bindParam(':cross_section', $motorData['cross_section']);
-                $motorStmt->bindParam(':half_cross_section', $motorData['half_cross_section']);
-                $motorStmt->bindParam(':helper_cross_section', $motorData['helper_cross_section']);
-                $motorStmt->bindParam(':helper_half_cross_section', $motorData['helper_half_cross_section']);
-                $motorStmt->bindParam(':connectionism', $motorData['connectionism']);
-                $motorStmt->bindParam(':volt', $motorData['volt']);
-                $motorStmt->bindParam(':poles', $motorData['poles']);
-                $motorStmt->bindParam(':type_of_motor', $motorData['type_of_motor']);
-                $motorStmt->bindParam(':type_of_volt', $motorData['type_of_volt']);
-                $motorStmt->bindParam(':type_of_step', $motorData['type_of_step']);
-                $motorStmt->bindParam(':created_at', $motorData['created_at']);
-                $motorStmt->execute();
-                $motor_id = $this->conn->lastInsertId();
+                $motorRepo = new MotorRepository();
+                $motor_id = $motorRepo->createMotor($repairData->motor, $customer_id);
             }
 
-            // 3. Δημιουργία της επισκευής
+            // // 3. Δημιουργία της επισκευής
             $repairQuery = "INSERT INTO repairs (customer_id, motor_id, description, 
                         repair_status, cost, created_at, is_arrived, estimated_is_complete) 
                         VALUES (:customer_id, :motor_id, :description, :repair_status,
@@ -225,24 +187,37 @@ class RepairRepository
             $repairStmt = $this->conn->prepare($repairQuery);
             $repairStmt->bindParam(':customer_id', $customer_id);
             $repairStmt->bindParam(':motor_id', $motor_id);
-            $repairStmt->bindParam(':description', $repairData['description']);
-            $repairStmt->bindParam(':repair_status', $repairData['repair_status']);
-            $repairStmt->bindParam(':cost', $repairData['cost']);
-            $repairStmt->bindParam(':created_at', $repairData['created_at']);
-            $repairStmt->bindParam(':is_arrived', $repairData['is_arrived']);
-            $repairStmt->bindParam(':estimated_is_complete', $repairData['estimated_is_complete']);
+            $repairStmt->bindParam(':description', $repairData->description);
+            $repairStmt->bindParam(':repair_status', $repairData->repair_status);
+            $repairStmt->bindParam(':cost', $repairData->cost);
+            $repairStmt->bindParam(':created_at', $repairData->created_at);
+            $repairStmt->bindParam(':is_arrived', $repairData->is_arrived);
+            $repairStmt->bindParam(':estimated_is_complete', $repairData->estimated_is_complete);
             $repairStmt->execute();
             $repair_id = $this->conn->lastInsertId();
 
             // 4. Αποθήκευση των τύπων επισκευής (repair types)
-            if (isset($common_faults) && is_array($common_faults)) {
-                foreach ($common_faults as $common_fault) {
+            if (isset($repairData->repair_fault_links) && is_array($repairData->repair_fault_links)) {
+                foreach ($repairData->repair_fault_links as $repair_fault_link) {
                     $commonFaultQuery = "INSERT INTO repair_fault_links (repair_id, common_fault_id) 
                                     VALUES (:repair_id, :common_fault_id)";
                     $commonFaultStmt = $this->conn->prepare($commonFaultQuery);
                     $commonFaultStmt->bindParam(':repair_id', $repair_id);
-                    $commonFaultStmt->bindParam(':common_fault_id', $common_fault);
+                    $commonFaultStmt->bindParam(':common_fault_id', $repair_fault_link->common_fault_id);
                     $commonFaultStmt->execute();
+                }
+            }
+
+            // 4. Αποθήκευση των τύπων επισκευής (repair types)
+            if (isset($repairData->motor->motor_cross_section_links) && is_array($repairData->motor->motor_cross_section_links)) {
+                foreach ($repairData->motor->motor_cross_section_links as $motor_cross_section_link) {
+                    $motor_cross_section_linksQuery = "INSERT INTO motor_cross_section_links (motor_id, cross_section, type) 
+                        VALUES (:motor_id, :cross_section, :type)";
+                    $motor_cross_section_linksStmt = $this->conn->prepare($motor_cross_section_linksQuery);
+                    $motor_cross_section_linksStmt->bindParam(':motor_id', $motor_id);
+                    $motor_cross_section_linksStmt->bindParam(':cross_section', $motor_cross_section_link->cross_section);
+                    $motor_cross_section_linksStmt->bindParam(':type', $motor_cross_section_link->type);
+                    $motor_cross_section_linksStmt->execute();
                 }
             }
 
@@ -255,57 +230,4 @@ class RepairRepository
             throw $e;
         }
     }
-
-    // public function createCustomer(Customer $customer) {
-    //     $query = "INSERT INTO customers (type, name, email, phone, created_at) 
-    //             VALUES (:type, :name, :email, :phone, NOW())";
-
-    //     $stmt = $this->conn->prepare($query);
-
-    //     $name = $customer->name;
-    //     $type = $customer->type;
-    //     $email = $customer->email;
-    //     $phone = $customer->phone;
-
-    //     $stmt->bindParam(':type', $type);
-    //     $stmt->bindParam(':name', $name);
-    //     $stmt->bindParam(':email', $email);
-    //     $stmt->bindParam(':phone', $phone);
-
-    //     if ($stmt->execute()) {
-    //         return $this->conn->lastInsertId();
-    //     }
-
-    //     return false;
-    // }
-
-    // public function updateCustomer(Customer $customer) {
-    //     $query = "UPDATE customers 
-    //             SET type = :type, name = :name, email = :email, phone = :phone 
-    //             WHERE id = :id";
-
-    //     $stmt = $this->conn->prepare($query);
-
-    //     $id = $customer->id;
-    //     $type = $customer->type;
-    //     $name = $customer->name;
-    //     $email = $customer->email;
-    //     $phone = $customer->phone;
-
-    //     $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
-    //     $stmt->bindParam(':type', $type);
-    //     $stmt->bindParam(':name', $name);
-    //     $stmt->bindParam(':email', $email);
-    //     $stmt->bindParam(':phone', $phone);
-
-    //     return $stmt->execute();
-    // }
-
-    // public function deleteCustomer($id) {
-    //     $query = "DELETE FROM customers WHERE id = :id";
-    //     $stmt = $this->conn->prepare($query);
-    //     $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
-
-    //     return $stmt->execute();
-    // }
 }
