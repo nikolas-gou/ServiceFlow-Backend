@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Config\Database;
 use App\Models\Motor;
+use App\Models\Motor_Cross_Section_Links;
 
 class MotorRepository
 {
@@ -43,8 +44,23 @@ class MotorRepository
         if (!$motorData) {
             return null;
         }
+        // 2. Φέρνουμε τα motor_cross_section_links
+        $linkQuery = "SELECT * FROM motor_cross_section_links WHERE motor_id = :motor_id";
+        $linkStmt = $this->conn->prepare($linkQuery);
+        $linkStmt->bindParam(':motor_id', $id, \PDO::PARAM_INT);
+        $linkStmt->execute();
 
-        return new Motor($motorData);
+        $linksData = $linkStmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $links = array_map(function ($linkRow) {
+            return new Motor_Cross_Section_Links($linkRow);
+        }, $linksData);
+
+        // 3. Ανάθεση των συνδέσμων στο αντικείμενο motor
+        $motor = new Motor($motorData);
+        $motor->motor_cross_section_links = $links;
+
+        return $motor;
     }
 
     public function getAllBrands()
