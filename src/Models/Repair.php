@@ -29,6 +29,8 @@ class Repair
         $this->cost = $data['cost'] ?? '';
         $this->estimated_is_complete = $data['estimated_is_complete'] ?? '';
         $this->repair_fault_links = $data['repair_fault_links'] ?? [];
+        $this->customer = $data['customer'] ?? null;
+        $this->motor = $data['motor'] ?? null;
     }
 
 
@@ -49,6 +51,8 @@ class Repair
                 fn($item) => Repair_Fault_Links::fromFrontendFormat($item),
                 $frontendData['repairFaultLinks'] ?? []
             ),
+            'customer' => $frontendData['customer'] ? Customer::fromFrontendFormat($frontendData['customer']) : null,
+            'motor' => $frontendData['motor'] ? Motor::fromFrontendFormat($frontendData['motor']) : null
         ];
 
         return new self($dbData);
