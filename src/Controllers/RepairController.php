@@ -5,6 +5,7 @@ namespace App\Controllers;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Repositories\RepairRepository;
+use App\Models\Repair;
 
 class RepairController
 {
@@ -48,13 +49,10 @@ class RepairController
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
             }
 
+            $repair = Repair::fromFrontendFormat($data['repair']);
+
             // Αποθήκευση της επισκευής
-            $newRepair = $this->repairRepository->createNewRepair(
-                $data['repair'],
-                $data['customer'],
-                $data['motor'],
-                $data["common_faults"]
-            );
+            $newRepair = $this->repairRepository->createNewRepair($repair);
 
             // Επιτυχής απάντηση
             $successResponse = [
