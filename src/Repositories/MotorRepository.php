@@ -72,4 +72,35 @@ class MotorRepository
 
         return $motorsData;
     }
+
+    // convert to getAll in a little bit
+    public function createMotor(Motor $motor, $customer_id)
+    {
+        $motorQuery = file_get_contents(__DIR__ . "/../Queries/Repair/createMotor.sql");
+        $motorStmt = $this->conn->prepare($motorQuery);
+        $motorStmt->bindParam(':customer_id', $customer_id);
+        $motorStmt->bindParam(':serial_number', $motor->serial_number);
+        $motorStmt->bindParam(':manufacturer', $motor->manufacturer);
+        $motorStmt->bindParam(':kw', $motor->kw);
+        $motorStmt->bindParam(':hp', $motor->hp);
+        $motorStmt->bindParam(':rpm', $motor->rpm);
+        $motorStmt->bindParam(':step', $motor->step);
+        $motorStmt->bindParam(':half_step', $motor->half_step);
+        $motorStmt->bindParam(':helper_step', $motor->helper_step);
+        $motorStmt->bindParam(':helper_half_step', $motor->helper_half_step);
+        $motorStmt->bindParam(':spiral', $motor->spiral);
+        $motorStmt->bindParam(':half_spiral', $motor->half_spiral);
+        $motorStmt->bindParam(':helper_spiral', $motor->helper_spiral);
+        $motorStmt->bindParam(':helper_half_spiral', $motor->helper_half_spiral);
+        $motorStmt->bindParam(':connectionism', $motor->connectionism);
+        $motorStmt->bindParam(':volt', $motor->volt);
+        $motorStmt->bindParam(':poles', $motor->poles);
+        $motorStmt->bindParam(':how_many_coils_with', $motor->how_many_coils_with);
+        $motorStmt->bindParam(':type_of_motor', $motor->type_of_motor);
+        $motorStmt->bindParam(':type_of_volt', $motor->type_of_volt);
+        $motorStmt->bindParam(':type_of_step', $motor->type_of_step);
+        $motorStmt->bindParam(':created_at', $motor->created_at);
+        $motorStmt->execute();
+        return $this->conn->lastInsertId();
+    }
 }
