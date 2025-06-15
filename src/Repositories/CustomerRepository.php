@@ -54,15 +54,10 @@ class CustomerRepository
 
         $stmt = $this->conn->prepare($query);
 
-        $name = $customer->name;
-        $type = $customer->type;
-        $email = $customer->email;
-        $phone = $customer->phone;
-
-        $stmt->bindParam(':type', $type);
-        $stmt->bindParam(':name', $name);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':phone', $phone);
+        $stmt->bindParam(':type', $customer->type);
+        $stmt->bindParam(':name', $customer->name);
+        $stmt->bindParam(':email', $customer->email);
+        $stmt->bindParam(':phone', $customer->phone);
 
         if ($stmt->execute()) {
             return $this->conn->lastInsertId();
