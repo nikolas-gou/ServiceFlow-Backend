@@ -56,7 +56,7 @@ class Motor
         $this->type_of_volt = $data['type_of_volt'] ?? "3-phase";
         $this->created_at = $data['created_at'] ?? "";
         $this->customer_id = $data['customer_id'] ?? null;
-        $this->motor_cross_section_links = $data['motor_cross_section_links'] ?? null;
+        $this->motor_cross_section_links = $data['motor_cross_section_links'] ?? [];
     }
 
     public static function fromFrontendFormat(array $frontendData): self
@@ -157,7 +157,7 @@ class Motor
             "type_of_volt" => $this->type_of_volt,
             'created_at' => $this->created_at,
             'customer_id' => $this->customer_id,
-            "motor_cross_section_links" => $this->motor_cross_section_links ? $this->motor_cross_section_links->toArray() : null
+            "motor_cross_section_links" => $this->motor_cross_section_links ? $this->motor_cross_section_links->toArray() : []
         ];
     }
 }
