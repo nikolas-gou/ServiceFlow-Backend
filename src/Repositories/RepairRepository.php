@@ -230,4 +230,137 @@ class RepairRepository
             throw $e;
         }
     }
+
+    // Statistics
+    public function getTotalCount(): int
+    {
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM repairs");
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }
+    
+    public function getMonthlyTrends(): array
+    {
+        $currentYear = date('Y');
+        $currentMonth = (int) date('m');
+        
+        $stmt = $this->conn->prepare("
+            SELECT 
+                MONTH(created_at) as month,
+                COUNT(*) as count
+            FROM repairs 
+            WHERE YEAR(created_at) = ? 
+            AND MONTH(created_at) <= ?
+            GROUP BY MONTH(created_at)
+            ORDER BY month ASC
+        ");
+        
+        $stmt->execute([$currentYear, $currentMonth]);
+        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        // Δημιουργία array με όλους τους μήνες (0-based: index 0 = Ιανουάριος)
+        $monthlyData = [];
+        for ($month = 1; $month <= $currentMonth; $month++) {
+            $monthlyData[] = 0; // Default value για κάθε μήνα
+        }
+        
+        // Συμπλήρωση με πραγματικά δεδομένα
+        foreach ($results as $row) {
+            $monthIndex = (int)$row['month'] - 1; // Μετατροπή σε 0-based index
+            $monthlyData[$monthIndex] = (int)$row['count'];
+        }
+        
+        return $monthlyData;
+    }
+
+    public function getMonthlyRevenueTrends(): array
+    {
+        $currentYear = date('Y');
+        $currentMonth = (int) date('m');
+        
+        $stmt = $this->conn->prepare("
+            SELECT 
+                MONTH(created_at) as month,
+                COALESCE(SUM(cost), 0) as revenue
+            FROM repairs 
+            WHERE YEAR(created_at) = ? 
+            AND MONTH(created_at) <= ?
+            /* AND status = 'completed' */
+            GROUP BY MONTH(created_at)
+            ORDER BY month ASC
+        ");
+        
+        $stmt->execute([$currentYear, $currentMonth]);
+        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        // Δημιουργία array με όλους τους μήνες (0-based: index 0 = Ιανουάριος)
+        $monthlyData = [];
+        for ($month = 1; $month <= $currentMonth; $month++) {
+            $monthlyData[] = 0.0; // Default value για κάθε μήνα
+        }
+        
+        // Συμπλήρωση με πραγματικά δεδομένα
+        foreach ($results as $row) {
+            $monthIndex = (int)$row['month'] - 1; // Μετατροπή σε 0-based index
+            $monthlyData[$monthIndex] = (float)$row['revenue'];
+        }
+        
+        return $monthlyData;
+    }
+
+    public function getCountByMonth(string $monthKey): int
+    {
+        $stmt = $this->conn->prepare("
+            SELECT COUNT(*) 
+            FROM repairs 
+            WHERE DATE_FORMAT(created_at, '%Y-%m') = ?
+        ");
+        $stmt->execute([$monthKey]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function getRevenueByMonth(string $monthKey): float
+    {
+        // Υποθέτω ότι έχεις πεδίο 'cost' ή 'price' στον πίνακα repairs
+        $stmt = $this->conn->prepare("
+            SELECT COALESCE(SUM(cost), 0) 
+            FROM repairs 
+            WHERE DATE_FORMAT(created_at, '%Y-%m') = ?
+            /* AND repairstatus = 'completed' */
+        ");
+        $stmt->execute([$monthKey]);
+        return (float) $stmt->fetchColumn();
+    }
+
+    public function getRevenueByYear(string $year): float
+    {
+        $stmt = $this->conn->prepare("
+            SELECT COALESCE(SUM(cost), 0) 
+            FROM repairs 
+            WHERE YEAR(created_at) = ?
+             /* AND repairstatus = 'completed' */
+        ");
+        $stmt->execute([$year]);
+        return (float) $stmt->fetchColumn();
+    }
+
+    public function getCountByStatus(): array
+    {
+        $stmt = $this->conn->prepare("
+            SELECT status, COUNT(*) as count
+            FROM repairs 
+            GROUP BY repair_status
+        ");
+        $stmt->execute();
+        
+        $results = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $results[] = [
+                'status' => $row['status'],
+                'count' => (int) $row['count']
+            ];
+        }
+        
+        return $results;
+    }
 }

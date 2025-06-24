@@ -103,4 +103,80 @@ class MotorRepository
         $motorStmt->execute();
         return $this->conn->lastInsertId();
     }
+
+    // Statistics
+     public function getTotalCount(): int
+    {
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM motors");
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function getMonthlyTrends(): array
+    {
+        $currentYear = date('Y');
+        $currentMonth = (int) date('m');
+        
+        $stmt = $this->conn->prepare("
+            SELECT 
+                MONTH(created_at) as month,
+                COUNT(*) as count
+            FROM motors 
+            WHERE YEAR(created_at) = ? 
+            AND MONTH(created_at) <= ?
+            GROUP BY MONTH(created_at)
+            ORDER BY month ASC
+        ");
+        
+        $stmt->execute([$currentYear, $currentMonth]);
+        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        // Δημιουργία array με όλους τους μήνες (0-based: index 0 = Ιανουάριος)
+        $monthlyData = [];
+        for ($month = 1; $month <= $currentMonth; $month++) {
+            $monthlyData[] = 0; // Default value για κάθε μήνα
+        }
+        
+        // Συμπλήρωση με πραγματικά δεδομένα
+        foreach ($results as $row) {
+            $monthIndex = (int)$row['month'] - 1; // Μετατροπή σε 0-based index
+            $monthlyData[$monthIndex] = (int)$row['count'];
+        }
+        
+        return $monthlyData;
+    }
+
+    public function getCountByMonth(string $monthKey): int
+    {
+        $stmt = $this->conn->prepare("
+            SELECT COUNT(*) 
+            FROM motors 
+            WHERE DATE_FORMAT(created_at, '%Y-%m') = ?
+        ");
+        $stmt->execute([$monthKey]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function getTopBrands(int $limit = 10): array
+    {
+        $stmt = $this->conn->prepare("
+            SELECT manufacturer, COUNT(*) as count
+            FROM motors 
+            WHERE manufacturer IS NOT NULL AND manufacturer != ''
+            GROUP BY manufacturer 
+            ORDER BY count DESC 
+            LIMIT ?
+        ");
+        $stmt->execute([$limit]);
+        
+        $results = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $results[] = [
+                'brand' => $row['manufacturer'],
+                'count' => (int) $row['count']
+            ];
+        }
+        
+        return $results;
+    }
 }
