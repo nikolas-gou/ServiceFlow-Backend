@@ -347,7 +347,7 @@ class RepairRepository
     public function getCountByStatus(): array
     {
         $stmt = $this->conn->prepare("
-            SELECT status, COUNT(*) as count
+            SELECT repair_status, COUNT(*) as count
             FROM repairs 
             GROUP BY repair_status
         ");
@@ -356,7 +356,7 @@ class RepairRepository
         $results = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $results[] = [
-                'status' => $row['status'],
+                'repair_status' => $row['repair_status'],
                 'count' => (int) $row['count']
             ];
         }
