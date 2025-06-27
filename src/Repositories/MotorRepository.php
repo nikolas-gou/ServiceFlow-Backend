@@ -73,6 +73,41 @@ class MotorRepository
         return $motorsData;
     }
 
+    public function getTopBrands(int $limit = 5): array
+    {
+        try {
+            $stmt = $this->conn->prepare("
+                SELECT 
+                    manufacturer, 
+                    COUNT(*) as count
+                FROM motors 
+                WHERE manufacturer IS NOT NULL 
+                AND manufacturer != '' 
+                AND TRIM(manufacturer) != ''
+                GROUP BY manufacturer 
+                ORDER BY count DESC 
+                LIMIT ?
+            ");
+            
+            $stmt->bindParam(1, $limit, \PDO::PARAM_INT);
+            $stmt->execute();
+            
+            $results = [];
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $results[] = [
+                    'manufacturer' => trim($row['manufacturer']),
+                    'count' => (int) $row['count']
+                ];
+            }
+            
+            return $results;
+            
+        } catch (\Exception $e) {
+            error_log("Error in getTopBrands: " . $e->getMessage());
+            return [];
+        }
+    }
+
     // convert to getAll in a little bit
     public function createMotor(Motor $motor, $customer_id)
     {
@@ -157,26 +192,4 @@ class MotorRepository
         return (int) $stmt->fetchColumn();
     }
 
-    public function getTopBrands(int $limit = 10): array
-    {
-        $stmt = $this->conn->prepare("
-            SELECT manufacturer, COUNT(*) as count
-            FROM motors 
-            WHERE manufacturer IS NOT NULL AND manufacturer != ''
-            GROUP BY manufacturer 
-            ORDER BY count DESC 
-            LIMIT ?
-        ");
-        $stmt->execute([$limit]);
-        
-        $results = [];
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $results[] = [
-                'brand' => $row['manufacturer'],
-                'count' => (int) $row['count']
-            ];
-        }
-        
-        return $results;
-    }
 }
