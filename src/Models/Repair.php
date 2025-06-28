@@ -26,7 +26,7 @@ class Repair
         $this->created_at = $data['created_at'] ?? "";
         $this->is_arrived = $data['is_arrived'] ?? "";
         $this->description = $data['description'] ?? '';
-        $this->cost = $data['cost'] ?? '';
+        $this->cost = $data['cost'] ?? null;
         $this->estimated_is_complete = $data['estimated_is_complete'] ?? '';
         $this->repairFaultLinks = $data['repair_fault_links'] ?? [];
         $this->customer = $data['customer'] ?? null;
@@ -45,7 +45,7 @@ class Repair
             'created_at' => $frontendData['createdAt'] ?? '',
             'is_arrived' => $frontendData['isArrived'] ?? '',
             'description' => $frontendData['description'] ?? '',
-            'cost' => $frontendData['cost'] ?? '',
+            'cost' => $frontendData['cost'] ?? null,
             'estimated_is_complete' => $frontendData['estimatedIsComplete'] ?? '',
             'repair_fault_links' => array_map(
                 fn($item) => RepairFaultLinks::fromFrontendFormat($item),
