@@ -70,10 +70,16 @@ class Repair
             'estimatedIsComplete' => $this->estimated_is_complete,
             'description' => $this->description,
             'cost' => $this->cost,
-            'customer' => $this->customer ? $this->customer->toFrontendFormat() : null,
-            'motor' => $this->motor ? $this->motor->toFrontendFormat() : null,
+            'customer' => is_object($this->customer) && method_exists($this->customer, 'toFrontendFormat')
+                ? $this->customer->toFrontendFormat()
+                : $this->customer,
+            'motor' => is_object($this->motor) && method_exists($this->motor, 'toFrontendFormat')
+                ? $this->motor->toFrontendFormat()
+                : $this->motor,
             'repairFaultLinks' => array_map(function ($link) {
-                return $link->toFrontendFormat();
+                return is_object($link) && method_exists($link, 'toFrontendFormat')
+                    ? $link->toFrontendFormat()
+                    : $link;
             }, $this->repairFaultLinks)
         ];
     }

@@ -2,37 +2,35 @@
 
 namespace App\Repositories;
 
-use App\Config\Database;
 use App\Models\MotorCrossSectionLinks;
+use PDO;
 
 class MotorCrossSectionLinksRepository
 {
     private $conn;
 
-    public function __construct()
+    public function __construct(PDO $pdo)
     {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        $this->conn = $pdo;
     }
 
-    // convert to getAll in a little bit
-    public function getAll()
+    public function getAll(): array
     {
         $query = "SELECT * FROM motor_cross_section_links";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $motorCrossSectionLinksData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         $motorCrossSectionLinks = [];
         foreach ($motorCrossSectionLinksData as $motorCrossSectionLinkData) {
-            $motorCrossSectionLinks[] = new MotorCrossSectionLinks($motorCrossSectionLinkData);
+            $motorCrossSectionLink = new MotorCrossSectionLinks($motorCrossSectionLinkData);
+            $motorCrossSectionLinks[] = $motorCrossSectionLink->toFrontendFormat();
         }
 
         return $motorCrossSectionLinks;
     }
 
-    // future functions 
-    public function getMotorCrossSectionLinksById($id)
+    public function getMotorCrossSectionLinksById($id): ?array
     {
         $query = "SELECT * FROM motor_cross_section_links WHERE motor_id = :id";
         $stmt = $this->conn->prepare($query);
@@ -44,6 +42,7 @@ class MotorCrossSectionLinksRepository
             return null;
         }
 
-        return new MotorCrossSectionLinks($motorCrossSectionLinksData);
+        $motorCrossSectionLink = new MotorCrossSectionLinks($motorCrossSectionLinksData);
+        return $motorCrossSectionLink->toFrontendFormat();
     }
 }

@@ -6,72 +6,63 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Repositories\RepairRepository;
 use App\Models\Repair;
+use App\Helpers\ResponseHelper;
 
 class RepairController
 {
     private $repairRepository;
 
-    public function __construct()
+    public function __construct(RepairRepository $repairRepository)
     {
-        $this->repairRepository = new RepairRepository();
+        $this->repairRepository = $repairRepository;
     }
 
-    public function getAll(Request $request, Response $response)
-    {
-        $repairs = $this->repairRepository->getAll();
-        $response->getBody()->write(json_encode($repairs, JSON_UNESCAPED_UNICODE));
-        return $response->withHeader('Content-Type', 'application/json');
-    }
-
-    public function getRepairById(Request $request, Response $response, $args)
-    {
-        $repair = $this->repairRepository->getRepairById($args['id']);
-        $response->getBody()->write(json_encode($repair));
-        return $response->withHeader('Content-Type', 'application/json');
-    }
-
-    public function createRepair(Request $request, Response $response)
+    public function getAll(Request $request, Response $response): Response
     {
         try {
-            // Λάβετε το περιεχόμενο του αιτήματος
-            $body = $request->getBody()->getContents();
+            $repairs = $this->repairRepository->getAll();
+            return ResponseHelper::success($response, $repairs, 'Repairs retrieved successfully');
+        } catch (\Exception $e) {
+            return ResponseHelper::serverError($response, 'Failed to retrieve repairs: ' . $e->getMessage());
+        }
+    }
 
-            // Αποκωδικοποιήστε το JSON string σε αντικείμενο PHP
-            $data = json_decode($body, true);
+    public function getRepairById(Request $request, Response $response, $args): Response
+    {
+        try {
+            $repair = $this->repairRepository->getRepairById($args['id']);
+            
+            if (!$repair) {
+                return ResponseHelper::notFound($response, 'Repair not found');
+            }
+            
+            return ResponseHelper::success($response, $repair, 'Repair retrieved successfully');
+        } catch (\Exception $e) {
+            return ResponseHelper::serverError($response, 'Failed to retrieve repair: ' . $e->getMessage());
+        }
+    }
 
-            // Έλεγχος για απαραίτητα δεδομένα
+    public function createRepair(Request $request, Response $response): Response
+    {
+        try {
+            $data = json_decode($request->getBody()->getContents(), true);
+
             if (!isset($data['repair']) || !isset($data['customer']) || !isset($data['motor'])) {
-                $errorResponse = [
-                    'status' => 'error',
-                    'message' => 'Λείπουν απαραίτητα δεδομένα (repair, customer ή motor)'
-                ];
-                $response->getBody()->write(json_encode($errorResponse, JSON_UNESCAPED_UNICODE));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+                return ResponseHelper::validationError($response, ['Λείπουν απαραίτητα δεδομένα (repair, customer ή motor)']);
             }
 
             $repair = Repair::fromFrontendFormat($data['repair']);
 
-            // Αποθήκευση της επισκευής
+            error_log("Creating repair with data: " . json_encode($data));
+
             $newRepair = $this->repairRepository->createNewRepair($repair);
 
-            // Επιτυχής απάντηση
-            $successResponse = [
-                'status' => 'success',
-                'message' => 'Η επισκευή δημιουργήθηκε επιτυχώς',
-                'data' => $newRepair
-            ];
+            error_log("Created repair result: " . json_encode($newRepair));
 
-            $response->getBody()->write(json_encode($successResponse, JSON_UNESCAPED_UNICODE));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+            return ResponseHelper::success($response, $newRepair, 'Η επισκευή δημιουργήθηκε επιτυχώς', 201);
         } catch (\Exception $e) {
-            // Διαχείριση σφαλμάτων
-            $errorResponse = [
-                'status' => 'error',
-                'message' => 'Σφάλμα κατά τη δημιουργία της επισκευής: ' . $e->getMessage()
-            ];
-
-            $response->getBody()->write(json_encode($errorResponse, JSON_UNESCAPED_UNICODE));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+            error_log("Error creating repair: " . $e->getMessage());
+            return ResponseHelper::serverError($response, 'Σφάλμα κατά τη δημιουργία της επισκευής: ' . $e->getMessage());
         }
     }
 }

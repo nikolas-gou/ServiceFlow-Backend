@@ -2,29 +2,31 @@
 
 namespace App\Repositories;
 
-use App\Config\Database;
 use App\Models\CommonFault;
+use PDO;
 
 class CommonFaultRepository
 {
     private $conn;
 
-    public function __construct()
+    public function __construct(PDO $pdo)
     {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        $this->conn = $pdo;
     }
 
-    public function getAll()
+    public function getAll(): array
     {
-        $query = "SELECT * FROM common_faults";
+        $query = "SELECT * FROM common_faults ORDER BY name";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $commonFaultsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         $commonFaults = [];
         foreach ($commonFaultsData as $commonFaultData) {
-            $commonFaults[] = new CommonFault($commonFaultData);
+            $commonFault = new CommonFault($commonFaultData);
+            $commonFaults[] = $commonFault->toFrontendFormat();
         }
+        
+        return $commonFaults;
     }
 }

@@ -2,37 +2,35 @@
 
 namespace App\Repositories;
 
-use App\Config\Database;
 use App\Models\Customer;
+use PDO;
 
 class CustomerRepository
 {
     private $conn;
 
-    public function __construct()
+    public function __construct(PDO $pdo)
     {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        $this->conn = $pdo;
     }
 
-    // convert to getAll in a little bit
-    public function getAll()
+    public function getAll(): array
     {
-        $query = "SELECT * FROM customers";
+        $query = "SELECT * FROM customers ORDER BY created_at DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $customersData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         $customers = [];
         foreach ($customersData as $customerData) {
-            $customers[] = new Customer($customerData);
+            $customer = new Customer($customerData);
+            $customers[] = $customer->toFrontendFormat();
         }
 
         return $customers;
     }
 
-    // future functions 
-    public function getCustomerById($id)
+    public function getCustomerById($id): ?array
     {
         $query = "SELECT * FROM customers WHERE id = :id";
         $stmt = $this->conn->prepare($query);
@@ -44,10 +42,11 @@ class CustomerRepository
             return null;
         }
 
-        return new Customer($customerData);
+        $customer = new Customer($customerData);
+        return $customer->toFrontendFormat();
     }
 
-    public function createCustomer(Customer $customer)
+    public function createCustomer(Customer $customer): int|false
     {
         $query = "INSERT INTO customers (type, name, email, phone, created_at) 
                 VALUES (:type, :name, :email, :phone, NOW())";
@@ -60,7 +59,7 @@ class CustomerRepository
         $stmt->bindParam(':phone', $customer->phone);
 
         if ($stmt->execute()) {
-            return $this->conn->lastInsertId();
+            return (int) $this->conn->lastInsertId();
         }
 
         return false;

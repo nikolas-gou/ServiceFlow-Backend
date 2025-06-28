@@ -2,38 +2,36 @@
 
 namespace App\Repositories;
 
-use App\Config\Database;
 use App\Models\Motor;
 use App\Models\MotorCrossSectionLinks;
+use PDO;
 
 class MotorRepository
 {
     private $conn;
 
-    public function __construct()
+    public function __construct(PDO $pdo)
     {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        $this->conn = $pdo;
     }
 
-    // convert to getAll in a little bit
-    public function getAll()
+    public function getAll(): array
     {
-        $query = "SELECT * FROM motors";
+        $query = "SELECT * FROM motors ORDER BY created_at DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $motorsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         $motors = [];
         foreach ($motorsData as $motorData) {
-            $motors[] = new Motor($motorData);
+            $motor = new Motor($motorData);
+            $motors[] = $motor->toFrontendFormat();
         }
 
         return $motors;
     }
 
-    // future functions 
-    public function getMotorById($id)
+    public function getMotorById($id): ?array
     {
         $query = "SELECT * FROM motors WHERE id = :id";
         $stmt = $this->conn->prepare($query);
@@ -44,7 +42,8 @@ class MotorRepository
         if (!$motorData) {
             return null;
         }
-        // 2. Φέρνουμε τα motor_cross_section_links
+        
+        // Φέρνουμε τα motor_cross_section_links
         $linkQuery = "SELECT * FROM motor_cross_section_links WHERE motor_id = :motor_id";
         $linkStmt = $this->conn->prepare($linkQuery);
         $linkStmt->bindParam(':motor_id', $id, \PDO::PARAM_INT);
@@ -55,21 +54,19 @@ class MotorRepository
             $links[] = new MotorCrossSectionLinks($linkRow);
         }
 
-        // 3. Ανάθεση των συνδέσμων στο αντικείμενο motor
+        // Ανάθεση των συνδέσμων στο αντικείμενο motor
         $motor = new Motor($motorData);
         $motor->motorCrossSectionLinks = $links;
 
-        return $motor;
+        return $motor->toFrontendFormat();
     }
 
-    public function getAllBrands()
+    public function getAllBrands(): array
     {
-        $query = "SELECT distinct manufacturer FROM motors";
+        $query = "SELECT DISTINCT manufacturer FROM motors WHERE manufacturer IS NOT NULL AND manufacturer != '' ORDER BY manufacturer";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_COLUMN);
-
-        return $motorsData;
     }
 
     public function getTopBrands(int $limit = 5): array
@@ -107,10 +104,17 @@ class MotorRepository
         }
     }
 
-    // convert to getAll in a little bit
-    public function createMotor(Motor $motor, $customer_id)
+    public function createMotor(Motor $motor, $customer_id): int
     {
-        $motorQuery = file_get_contents(__DIR__ . "/../Queries/Repair/createMotor.sql");
+        $motorQuery = "INSERT INTO motors (customer_id, serial_number, manufacturer, kw, hp, rpm, 
+                        step, half_step, helper_step, helper_half_step, spiral, half_spiral, 
+                        helper_spiral, helper_half_spiral, connectionism, volt, poles, 
+                        how_many_coils_with, type_of_motor, type_of_volt, type_of_step, created_at) 
+                        VALUES (:customer_id, :serial_number, :manufacturer, :kw, :hp, :rpm, 
+                        :step, :half_step, :helper_step, :helper_half_step, :spiral, :half_spiral, 
+                        :helper_spiral, :helper_half_spiral, :connectionism, :volt, :poles, 
+                        :how_many_coils_with, :type_of_motor, :type_of_volt, :type_of_step, :created_at)";
+        
         $motorStmt = $this->conn->prepare($motorQuery);
         $motorStmt->bindParam(':customer_id', $customer_id);
         $motorStmt->bindParam(':serial_number', $motor->serial_number);
@@ -133,13 +137,24 @@ class MotorRepository
         $motorStmt->bindParam(':type_of_motor', $motor->type_of_motor);
         $motorStmt->bindParam(':type_of_volt', $motor->type_of_volt);
         $motorStmt->bindParam(':type_of_step', $motor->type_of_step);
-        $motorStmt->bindParam(':created_at', $motor->created_at);
+        
+        // Διόρθωση datetime format για MySQL
+        $createdAt = $motor->created_at;
+        if ($createdAt) {
+            // Μετατροπή από ISO format σε MySQL format
+            $date = new \DateTime($createdAt);
+            $createdAt = $date->format('Y-m-d H:i:s');
+        } else {
+            $createdAt = date('Y-m-d H:i:s');
+        }
+        $motorStmt->bindParam(':created_at', $createdAt);
+        
         $motorStmt->execute();
-        return $this->conn->lastInsertId();
+        return (int) $this->conn->lastInsertId();
     }
 
     // Statistics
-     public function getTotalCount(): int
+    public function getTotalCount(): int
     {
         $stmt = $this->conn->prepare("SELECT COUNT(*) FROM motors");
         $stmt->execute();
@@ -190,5 +205,4 @@ class MotorRepository
         $stmt->execute([$monthKey]);
         return (int) $stmt->fetchColumn();
     }
-
 }

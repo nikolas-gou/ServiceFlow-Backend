@@ -12,6 +12,7 @@ $app->options('/{routes:.+}', function ($request, $response) {
 });
 
 $app->group('/api', function (RouteCollectorProxy $group) {
+    // Customers
     $group->get('/customers', [CustomerController::class, 'getAll']);
     $group->post('/customers', [CustomerController::class, 'createCustomer']);
     $group->get('/customers/{id}', [CustomerController::class, 'getCustomerById']);
@@ -30,15 +31,10 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     // Common Faults
     $group->get('/common_faults', [CommonFaultController::class, 'getAll']);
 
-    // Νέα Comprehensive Statistics API
+    // Statistics
     $group->group('/statistics', function (RouteCollectorProxy $statsGroup) {
-        // Γενικά στατιστικά για dashboard cards
         $statsGroup->get('/overview', [StatisticsController::class, 'getOverviewStats']);
-        
-        // Ολοκληρωμένα δεδομένα dashboard (όλα μαζί)
         $statsGroup->get('/dashboard', [StatisticsController::class, 'getDashboardData']);
-        
-        // Στατιστικά πελατών
         $statsGroup->get('/customers', [StatisticsController::class, 'getCustomerStats']);
     });
 });
