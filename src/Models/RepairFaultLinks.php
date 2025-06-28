@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-class Repair_Fault_Links
+class RepairFaultLinks
 {
     public $repair_id;
     public $common_fault_id;

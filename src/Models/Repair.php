@@ -15,7 +15,7 @@ class Repair
     public $estimated_is_complete;
     public $customer;
     public $motor;
-    public $repair_fault_links = [];
+    public $repairFaultLinks = [];
 
     public function __construct(array $data = [])
     {
@@ -28,7 +28,7 @@ class Repair
         $this->description = $data['description'] ?? '';
         $this->cost = $data['cost'] ?? '';
         $this->estimated_is_complete = $data['estimated_is_complete'] ?? '';
-        $this->repair_fault_links = $data['repair_fault_links'] ?? [];
+        $this->repairFaultLinks = $data['repair_fault_links'] ?? [];
         $this->customer = $data['customer'] ?? null;
         $this->motor = $data['motor'] ?? null;
     }
@@ -48,7 +48,7 @@ class Repair
             'cost' => $frontendData['cost'] ?? '',
             'estimated_is_complete' => $frontendData['estimatedIsComplete'] ?? '',
             'repair_fault_links' => array_map(
-                fn($item) => Repair_Fault_Links::fromFrontendFormat($item),
+                fn($item) => RepairFaultLinks::fromFrontendFormat($item),
                 $frontendData['repairFaultLinks'] ?? []
             ),
             'customer' => $frontendData['customer'] ? Customer::fromFrontendFormat($frontendData['customer']) : null,
@@ -74,7 +74,7 @@ class Repair
             'motor' => $this->motor ? $this->motor->toFrontendFormat() : null,
             'repairFaultLinks' => array_map(function ($link) {
                 return $link->toFrontendFormat();
-            }, $this->repair_fault_links)
+            }, $this->repairFaultLinks)
         ];
     }
 
@@ -94,7 +94,7 @@ class Repair
             'motor' => $this->motor ? $this->motor->toArray() : null,
             'repair_fault_links' => array_map(function ($link) {
                 return $link->toArray();
-            }, $this->repair_fault_links)
+            }, $this->repairFaultLinks)
         ];
     }
 }

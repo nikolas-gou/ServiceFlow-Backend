@@ -4,9 +4,7 @@ use Slim\Routing\RouteCollectorProxy;
 use App\Controllers\CustomerController;
 use App\Controllers\MotorController;
 use App\Controllers\RepairController;
-use App\Controllers\StatsOfCustomerController;
-use App\Controllers\StatsOfRepairController;
-use App\Controllers\Common_Fault_Controller;
+use App\Controllers\CommonFaultController;
 use App\Controllers\StatisticsController;
 
 $app->options('/{routes:.+}', function ($request, $response) {
@@ -30,11 +28,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     $group->get('/repairs/{id}', [RepairController::class, 'getRepairById']);
 
     // Common Faults
-    $group->get('/common_faults', [Common_Fault_Controller::class, 'getAll']);
-
-    // Stats
-    $group->get('/statsOfCustomers', [StatsOfCustomerController::class, 'stats']);
-    $group->get('/statsOfRepair', [StatsOfRepairController::class, 'stats']);
+    $group->get('/common_faults', [CommonFaultController::class, 'getAll']);
 
     // Νέα Comprehensive Statistics API
     $group->group('/statistics', function (RouteCollectorProxy $statsGroup) {

@@ -8,8 +8,8 @@ use App\Models\Customer;
 use App\Repositories\CustomerRepository;
 use App\Models\Motor;
 use App\Repositories\MotorRepository;
-use App\Models\Motor_Cross_Section_Links;
-use App\Models\Repair_Fault_Links;
+use App\Models\MotorCrossSectionLinks;
+use App\Models\RepairFaultLinks;
 
 class RepairRepository
 {
@@ -82,27 +82,28 @@ class RepairRepository
             if ($crossSectionsArray && is_array($crossSectionsArray)) {
                 foreach ($crossSectionsArray as $crossSectionData) {
                     if ($crossSectionData !== null) {
-                        $motorCrossSectionLinks[] = new Motor_Cross_Section_Links($crossSectionData);
+                        $motorCrossSectionLinks[] = new MotorCrossSectionLinks($crossSectionData);
                     }
                 }
             }
 
-            $motor->motor_cross_section_links = $motorCrossSectionLinks;
+            $motor->motorCrossSectionLinks = $motorCrossSectionLinks;
             $repair->motor = $motor;
 
             // Επεξεργασία των βλαβών από JSON
-            $repair_fault_linksJSON = $repairData['repair_fault_links_json'];
-            $repair_fault_linksArray = json_decode($repair_fault_linksJSON, true);
+            $repairFaultLinksJSON = $repairData['repair_fault_links_json'];
+            $repairFaultLinksArray = json_decode($repairFaultLinksJSON, true);
 
-            $repair_fault_links = [];
-            if ($repair_fault_linksArray && is_array($repair_fault_linksArray)) {
-                foreach ($repair_fault_linksArray as $repair_fault_linksData) {
-                    if ($repair_fault_linksData !== null) {
-                        $repair_fault_links[] = new Repair_Fault_Links($repair_fault_linksData);
+            $repairFaultLinks = [];
+            if ($repairFaultLinksArray && is_array($repairFaultLinksArray)) {
+                foreach ($repairFaultLinksArray as $repairFaultLinksData) {
+                    if ($repairFaultLinksData !== null) {
+                        $repairFaultLinks[] = new RepairFaultLinks($repairFaultLinksData);
                     }
                 }
             }
-            $repair->repair_fault_links = $repair_fault_links;
+
+            $repair->repairFaultLinks = $repairFaultLinks;
 
             if ($toFrontendFormat) {
                 $repairs[] = $repair->toFrontendFormat();
@@ -144,8 +145,8 @@ class RepairRepository
         }
 
         // Φέρνουμε το αντίστοιχο Motor
-        $repairFaultLinksRepo = new Repair_Fault_Links_Repository();
-        $repair->repair_fault_links = $repairFaultLinksRepo->getByRepairId($id);
+        $repairFaultLinksRepo = new RepairFaultLinksRepository();
+        $repair->repairFaultLinks = $repairFaultLinksRepo->getByRepairId($id);
 
         return $repair;
     }
@@ -197,27 +198,27 @@ class RepairRepository
             $repair_id = $this->conn->lastInsertId();
 
             // 4. Αποθήκευση των τύπων επισκευής (repair types)
-            if (isset($repairData->repair_fault_links) && is_array($repairData->repair_fault_links)) {
-                foreach ($repairData->repair_fault_links as $repair_fault_link) {
-                    $commonFaultQuery = "INSERT INTO repair_fault_links (repair_id, common_fault_id) 
-                                    VALUES (:repair_id, :common_fault_id)";
+            if (isset($repairData->repairFaultLinks) && is_array($repairData->repairFaultLinks)) {
+                foreach ($repairData->repairFaultLinks as $repairFaultLink) {
+                    $commonFaultQuery = "INSERT INTO repair_fault_links (repair_id, common_fault_id)
+                        VALUES (:repair_id, :common_fault_id)";
                     $commonFaultStmt = $this->conn->prepare($commonFaultQuery);
                     $commonFaultStmt->bindParam(':repair_id', $repair_id);
-                    $commonFaultStmt->bindParam(':common_fault_id', $repair_fault_link->common_fault_id);
+                    $commonFaultStmt->bindParam(':common_fault_id', $repairFaultLink->common_fault_id);
                     $commonFaultStmt->execute();
                 }
             }
 
             // 4. Αποθήκευση των τύπων επισκευής (repair types)
-            if (isset($repairData->motor->motor_cross_section_links) && is_array($repairData->motor->motor_cross_section_links)) {
-                foreach ($repairData->motor->motor_cross_section_links as $motor_cross_section_link) {
-                    $motor_cross_section_linksQuery = "INSERT INTO motor_cross_section_links (motor_id, cross_section, type) 
+            if (isset($repairData->motor->motorCrossSectionLinks) && is_array($repairData->motor->motorCrossSectionLinks)) {
+                foreach ($repairData->motor->motorCrossSectionLinks as $motorCrossSectionLink) {
+                    $motorCrossSectionLinksQuery = "INSERT INTO motor_cross_section_links (motor_id, cross_section, type)
                         VALUES (:motor_id, :cross_section, :type)";
-                    $motor_cross_section_linksStmt = $this->conn->prepare($motor_cross_section_linksQuery);
-                    $motor_cross_section_linksStmt->bindParam(':motor_id', $motor_id);
-                    $motor_cross_section_linksStmt->bindParam(':cross_section', $motor_cross_section_link->cross_section);
-                    $motor_cross_section_linksStmt->bindParam(':type', $motor_cross_section_link->type);
-                    $motor_cross_section_linksStmt->execute();
+                    $motorCrossSectionLinksStmt = $this->conn->prepare($motorCrossSectionLinksQuery);
+                    $motorCrossSectionLinksStmt->bindParam(':motor_id', $motor_id);
+                    $motorCrossSectionLinksStmt->bindParam(':cross_section', $motorCrossSectionLink->cross_section);
+                    $motorCrossSectionLinksStmt->bindParam(':type', $motorCrossSectionLink->type);
+                    $motorCrossSectionLinksStmt->execute();
                 }
             }
 

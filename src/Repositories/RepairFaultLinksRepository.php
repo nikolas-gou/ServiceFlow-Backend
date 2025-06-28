@@ -3,9 +3,9 @@
 namespace App\Repositories;
 
 use App\Config\Database;
-use App\Models\Repair_Fault_Links;
+use App\Models\RepairFaultLinks;
 
-class Repair_Fault_Links_Repository
+class RepairFaultLinksRepository
 {
     private $conn;
 
@@ -22,7 +22,7 @@ class Repair_Fault_Links_Repository
         $stmt->execute();
 
         $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        return array_map(fn($row) => new Repair_Fault_Links($row), $results);
+        return array_map(fn($row) => new RepairFaultLinks($row), $results);
     }
 
     public function getByRepairId(int $repairId): array
@@ -33,6 +33,6 @@ class Repair_Fault_Links_Repository
         $stmt->execute();
 
         $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        return array_map(fn($row) => new Repair_Fault_Links($row), $results);
+        return array_map(fn($row) => new RepairFaultLinks($row), $results);
     }
 }

@@ -3,9 +3,9 @@
 namespace App\Repositories;
 
 use App\Config\Database;
-use App\Models\Common_Fault;
+use App\Models\CommonFault;
 
-class Common_Fault_Repository
+class CommonFaultRepository
 {
     private $conn;
 
@@ -22,9 +22,9 @@ class Common_Fault_Repository
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        $common_faults = [];
-        foreach ($common_faultsData as $common_faultData) {
-            $common_faults[] = new Common_Fault($common_faultData);
+        $commonFaults = [];
+        foreach ($commonFaultsData as $commonFaultData) {
+            $commonFaults[] = new CommonFault($commonFaultData);
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Motor_Cross_Section_Links;
+use App\Models\MotorCrossSectionLinks;
 
 class Motor
 {
@@ -29,7 +29,7 @@ class Motor
     public $type_of_volt;
     public $created_at;
     public $customer_id;
-    public $motor_cross_section_links;
+    public $motorCrossSectionLinks;
 
     public function __construct(array $data = [])
     {
@@ -56,7 +56,7 @@ class Motor
         $this->type_of_volt = $data['type_of_volt'] ?? "3-phase";
         $this->created_at = $data['created_at'] ?? "";
         $this->customer_id = $data['customer_id'] ?? null;
-        $this->motor_cross_section_links = $data['motor_cross_section_links'] ?? [];
+        $this->motorCrossSectionLinks = $data['motor_cross_section_links'] ?? [];
     }
 
     public static function fromFrontendFormat(array $frontendData): self
@@ -86,7 +86,7 @@ class Motor
             'created_at' => $frontendData['createdAt'] ?? null,
             'customer_id' => $frontendData['customerID'] ?? null,
             'motor_cross_section_links' => isset($frontendData['motorCrossSectionLinks']) && is_array($frontendData['motorCrossSectionLinks'])
-                ? array_map(fn($linkData) => Motor_Cross_Section_Links::fromFrontendFormat($linkData), $frontendData['motorCrossSectionLinks'])
+                ? array_map(fn($linkData) => MotorCrossSectionLinks::fromFrontendFormat($linkData), $frontendData['motorCrossSectionLinks'])
                 : []
         ];
 
@@ -119,8 +119,8 @@ class Motor
             'typeOfVolt' => $this->type_of_volt,
             'createdAt' => $this->created_at,
             'customerID' => $this->customer_id,
-            'motorCrossSectionLinks' => is_array($this->motor_cross_section_links)
-                ? array_map(fn($link) => $link->toFrontendFormat(), $this->motor_cross_section_links)
+            'motorCrossSectionLinks' => is_array($this->motorCrossSectionLinks)
+                ? array_map(fn($link) => $link->toFrontendFormat(), $this->motorCrossSectionLinks)
                 : []
         ];
     }
@@ -157,7 +157,7 @@ class Motor
             "type_of_volt" => $this->type_of_volt,
             'created_at' => $this->created_at,
             'customer_id' => $this->customer_id,
-            "motor_cross_section_links" => $this->motor_cross_section_links ? $this->motor_cross_section_links->toArray() : []
+            "motor_cross_section_links" => $this->motorCrossSectionLinks ? $this->motorCrossSectionLinks->toArray() : []
         ];
     }
 }

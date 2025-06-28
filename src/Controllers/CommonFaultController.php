@@ -4,21 +4,21 @@ namespace App\Controllers;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use App\Repositories\Common_Fault_Repository;
+use App\Repositories\CommonFaultRepository;
 
-class Common_Fault_Controller
+class CommonFaultController
 {
-    private $common_fault_repository;
+    private $commonFaultRepository;
 
     public function __construct()
     {
-        $this->common_fault_repository = new Common_Fault_Repository();
+        $this->commonFaultRepository = new CommonFaultRepository();
     }
 
     public function getAll(Request $request, Response $response)
     {
-        $common_fault = $this->common_fault_repository->getAll();
-        $response->getBody()->write(json_encode($common_fault, JSON_UNESCAPED_UNICODE));
+        $commonFault = $this->commonFaultRepository->getAll();
+        $response->getBody()->write(json_encode($commonFault, JSON_UNESCAPED_UNICODE));
         return $response->withHeader('Content-Type', 'application/json');
     }
 }

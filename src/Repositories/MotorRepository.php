@@ -4,7 +4,7 @@ namespace App\Repositories;
 
 use App\Config\Database;
 use App\Models\Motor;
-use App\Models\Motor_Cross_Section_Links;
+use App\Models\MotorCrossSectionLinks;
 
 class MotorRepository
 {
@@ -50,15 +50,14 @@ class MotorRepository
         $linkStmt->bindParam(':motor_id', $id, \PDO::PARAM_INT);
         $linkStmt->execute();
 
-        $linksData = $linkStmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        $links = array_map(function ($linkRow) {
-            return new Motor_Cross_Section_Links($linkRow);
-        }, $linksData);
+        $links = [];
+        while ($linkRow = $linkStmt->fetch(\PDO::FETCH_ASSOC)) {
+            $links[] = new MotorCrossSectionLinks($linkRow);
+        }
 
         // 3. Ανάθεση των συνδέσμων στο αντικείμενο motor
         $motor = new Motor($motorData);
-        $motor->motor_cross_section_links = $links;
+        $motor->motorCrossSectionLinks = $links;
 
         return $motor;
     }
