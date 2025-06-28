@@ -109,12 +109,14 @@ class StatisticsController
     {
         try {
             $stats = [
-                'totalCount' => $this->customerRepository->getTotalCount(),
-                'individualCount' => $this->customerRepository->getCountByType('individual'),
-                'factoryCount' => $this->customerRepository->getCountByType('factory'),
+                'totalCustomers' => $this->customerRepository->getTotalCount(),
+                'customerTypes' => [
+                    'individual' => $this->customerRepository->getCountByType('individual'),
+                    'factory' => $this->customerRepository->getCountByType('factory')
+                ],
                 'monthlyTrends' => $this->customerRepository->getMonthlyTrends(),
-                'byTypeAndMonth' => $this->customerRepository->getCustomersByTypeAndMonth(),
-                'topCustomers' => $this->customerRepository->getTopCustomerByRevenue(5),
+                'customersByTypeAndMonth' => $this->customerRepository->getCustomersByTypeAndMonth(),
+                'topCustomersByRevenue' => $this->customerRepository->getTopCustomerByRevenue(5),
                 'typeStats' => $this->customerRepository->getCustomerTypeStats()
             ];
 
