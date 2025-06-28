@@ -12,19 +12,24 @@ class CorsMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
-        $allowed_origins = [
-            'http://localhost:3000', // Το τοπικό React frontend
-            'https://motorserviceflow.vercel.app' // Το Vercel frontend
-        ];
-
+        
+        $settings = require __DIR__ . '/../../config/settings.php';
+        $corsConfig = $settings['cors'];
+        
         $origin = $request->getHeaderLine('Origin');
-        if (in_array($origin, $allowed_origins)) {
-            return $response
-                ->withHeader('Access-Control-Allow-Origin', $origin)
-                ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
-                ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-                ->withHeader('Access-Control-Allow-Credentials', 'true');
+        
+        if (in_array($origin, $corsConfig['allowed_origins'])) {
+            $response = $response->withHeader('Access-Control-Allow-Origin', $origin);
         }
+        
+        $response = $response
+            ->withHeader('Access-Control-Allow-Headers', implode(', ', $corsConfig['allowed_headers']))
+            ->withHeader('Access-Control-Allow-Methods', implode(', ', $corsConfig['allowed_methods']));
+            
+        if ($corsConfig['allow_credentials']) {
+            $response = $response->withHeader('Access-Control-Allow-Credentials', 'true');
+        }
+        
         return $response;
     }
 }

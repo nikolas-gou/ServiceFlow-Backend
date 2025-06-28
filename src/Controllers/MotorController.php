@@ -5,34 +5,77 @@ namespace App\Controllers;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Repositories\MotorRepository;
+use App\Helpers\ResponseHelper;
 
 class MotorController
 {
     private $motorRepository;
 
-    public function __construct()
+    public function __construct(MotorRepository $motorRepository)
     {
-        $this->motorRepository = new MotorRepository();
+        $this->motorRepository = $motorRepository;
     }
 
-    public function getAll(Request $request, Response $response)
+    public function getAll(Request $request, Response $response): Response
     {
-        $motors = $this->motorRepository->getAll();
-        $response->getBody()->write(json_encode($motors, JSON_UNESCAPED_UNICODE));
-        return $response->withHeader('Content-Type', 'application/json');
+        try {
+            $motors = $this->motorRepository->getAll();
+            return ResponseHelper::success($response, $motors, 'Motors retrieved successfully');
+        } catch (\Exception $e) {
+            return ResponseHelper::serverError($response, 'Failed to retrieve motors: ' . $e->getMessage());
+        }
     }
 
-    public function getMotorById(Request $request, Response $response, $args)
+    public function createMotor(Request $request, Response $response): Response
     {
-        $motor = $this->motorRepository->getMotorById($args['id']);
-        $response->getBody()->write(json_encode($motor));
-        return $response->withHeader('Content-Type', 'application/json');
+        try {
+            $data = json_decode($request->getBody()->getContents(), true);
+            
+            if (!$data) {
+                return ResponseHelper::validationError($response, ['Invalid JSON data']);
+            }
+            
+            $motor = new \App\Models\Motor($data);
+            
+            if (!$motor->isValid()) {
+                return ResponseHelper::validationError($response, ['Motor data is invalid']);
+            }
+            
+            $motorId = $this->motorRepository->createMotor($motor);
+            
+            if ($motorId) {
+                $motor->id = $motorId;
+                return ResponseHelper::success($response, $motor, 'Motor created successfully', 201);
+            }
+            
+            return ResponseHelper::serverError($response, 'Failed to create motor');
+        } catch (\Exception $e) {
+            return ResponseHelper::serverError($response, 'Failed to create motor: ' . $e->getMessage());
+        }
     }
 
-    public function getAllBrands(Request $request, Response $response)
+    public function getAllBrands(Request $request, Response $response): Response
     {
-        $brands = $this->motorRepository->getAllBrands();
-        $response->getBody()->write(json_encode($brands, JSON_UNESCAPED_UNICODE));
-        return $response->withHeader('Content-Type', 'application/json');
+        try {
+            $brands = $this->motorRepository->getAllBrands();
+            return ResponseHelper::success($response, $brands, 'Brands retrieved successfully');
+        } catch (\Exception $e) {
+            return ResponseHelper::serverError($response, 'Failed to retrieve brands: ' . $e->getMessage());
+        }
+    }
+
+    public function getMotorById(Request $request, Response $response, $args): Response
+    {
+        try {
+            $motor = $this->motorRepository->getMotorById($args['id']);
+            
+            if (!$motor) {
+                return ResponseHelper::notFound($response, 'Motor not found');
+            }
+            
+            return ResponseHelper::success($response, $motor, 'Motor retrieved successfully');
+        } catch (\Exception $e) {
+            return ResponseHelper::serverError($response, 'Failed to retrieve motor: ' . $e->getMessage());
+        }
     }
 }

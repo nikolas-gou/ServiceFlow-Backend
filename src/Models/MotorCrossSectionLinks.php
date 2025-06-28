@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-class Motor_Cross_Section_Links
+class MotorCrossSectionLinks
 {
     public  $id;
     public $motor_id;
