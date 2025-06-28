@@ -114,4 +114,60 @@ class StatisticsController
         }
         return $trends;
     }
+
+    /**
+     * Στατιστικά πελατών - ολοκληρωμένα δεδομένα
+     */
+    public static function getCustomerStats(Request $request, Response $response): Response
+    {
+        try {
+            $customerRepository = new CustomerRepository();
+
+            $customerStats = [
+                // Βασικά στατιστικά
+                'totalCustomers' => $customerRepository->getTotalCount(),
+                'monthlyTrends' => $customerRepository->getMonthlyTrends(),
+                
+                // Στατιστικά ανά κατηγορία
+                'customerTypes' => [
+                    'individual' => $customerRepository->getCountByType('individual'),
+                    'factory' => $customerRepository->getCountByType('factory')
+                ],
+                
+                // Λεπτομερή στατιστικά ανά κατηγορία
+                'typeStats' => $customerRepository->getCustomerTypeStats(),
+                
+                // Πελάτες ανά μήνα ανά κατηγορία
+                'customersByTypeAndMonth' => $customerRepository->getCustomersByTypeAndMonth(),
+                
+                // Λεπτομερή μηνιαία στατιστικά
+                'detailedMonthlyStats' => $customerRepository->getDetailedMonthlyStats(),
+                
+                // Καλύτεροι πελάτες με βάση τα έσοδα
+                'topCustomersByRevenue' => $customerRepository->getTopCustomerByRevenue(10),
+                
+                // Τρέχοντος μήνα στατιστικά
+                'currentMonthStats' => [
+                    'total' => $customerRepository->getCountByMonth(date('Y-m')),
+                    'individual' => $customerRepository->getCountByTypeAndMonth('individual', date('Y-m')),
+                    'factory' => $customerRepository->getCountByTypeAndMonth('factory', date('Y-m'))
+                ]
+            ];
+
+            $response->getBody()->write(json_encode([
+                'success' => true,
+                'data' => $customerStats
+            ]));
+
+            return $response->withHeader('Content-Type', 'application/json');
+
+        } catch (\Exception $e) {
+            $response->getBody()->write(json_encode([
+                'success' => false,
+                'message' => 'Error fetching customer statistics: ' . $e->getMessage()
+            ]));
+
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+    }
 }

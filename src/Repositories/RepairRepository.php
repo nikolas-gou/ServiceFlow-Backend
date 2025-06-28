@@ -356,7 +356,7 @@ class RepairRepository
         $results = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $results[] = [
-                'repair_status' => $row['repair_status'],
+                'repairStatus' => $row['repair_status'],
                 'count' => (int) $row['count']
             ];
         }

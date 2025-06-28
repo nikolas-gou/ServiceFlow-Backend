@@ -41,22 +41,10 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         // Γενικά στατιστικά για dashboard cards
         $statsGroup->get('/overview', [StatisticsController::class, 'getOverviewStats']);
         
-        // Μηνιαία στατιστικά για charts
-        $statsGroup->get('/monthly', [StatisticsController::class, 'getMonthlyStats']);
-        
-        // Στατιστικά πελατών ανά τύπο
-        $statsGroup->get('/customer-types', [StatisticsController::class, 'getCustomerTypeStats']);
-        
-        // Top μάρκες μοτέρ
-        $statsGroup->get('/top-brands', [StatisticsController::class, 'getTopMotorBrands']);
-        
-        // Ανάλυση εσόδων
-        $statsGroup->get('/revenue', [StatisticsController::class, 'getRevenueBreakdown']);
-        
-        // Στατιστικά επισκευών ανά κατάσταση
-        $statsGroup->get('/repair-status', [StatisticsController::class, 'getRepairStatusStats']);
-        
         // Ολοκληρωμένα δεδομένα dashboard (όλα μαζί)
         $statsGroup->get('/dashboard', [StatisticsController::class, 'getDashboardData']);
+        
+        // Στατιστικά πελατών
+        $statsGroup->get('/customers', [StatisticsController::class, 'getCustomerStats']);
     });
 });
