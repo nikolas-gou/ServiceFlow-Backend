@@ -109,11 +109,13 @@ class MotorRepository
         $motorQuery = "INSERT INTO motors (customer_id, serial_number, manufacturer, kw, hp, rpm, 
                         step, half_step, helper_step, helper_half_step, spiral, half_spiral, 
                         helper_spiral, helper_half_spiral, connectionism, volt, poles, 
-                        how_many_coils_with, type_of_motor, type_of_volt, type_of_step, created_at) 
+                        coils_count, half_coils_count, helper_coils_count, helper_half_coils_count,
+                        type_of_motor, type_of_volt, type_of_step, created_at) 
                         VALUES (:customer_id, :serial_number, :manufacturer, :kw, :hp, :rpm, 
                         :step, :half_step, :helper_step, :helper_half_step, :spiral, :half_spiral, 
                         :helper_spiral, :helper_half_spiral, :connectionism, :volt, :poles, 
-                        :how_many_coils_with, :type_of_motor, :type_of_volt, :type_of_step, :created_at)";
+                        :coils_count, :half_coils_count, :helper_coils_count, :helper_half_coils_count,
+                        :type_of_motor, :type_of_volt, :type_of_step, :created_at)";
         
         $motorStmt = $this->conn->prepare($motorQuery);
         $motorStmt->bindParam(':customer_id', $customer_id);
@@ -133,7 +135,11 @@ class MotorRepository
         $motorStmt->bindParam(':connectionism', $motor->connectionism);
         $motorStmt->bindParam(':volt', $motor->volt);
         $motorStmt->bindParam(':poles', $motor->poles);
-        $motorStmt->bindParam(':how_many_coils_with', $motor->how_many_coils_with);
+        $motorStmt->bindParam(':coils_count', $motor->coils_count);
+        $motorStmt->bindParam(':half_coils_count', $motor->half_coils_count);
+        $motorStmt->bindParam(':helper_coils_count', $motor->helper_coils_count);
+        $motorStmt->bindParam(':helper_half_coils_count', $motor->helper_half_coils_count);
+        
         $motorStmt->bindParam(':type_of_motor', $motor->type_of_motor);
         $motorStmt->bindParam(':type_of_volt', $motor->type_of_volt);
         $motorStmt->bindParam(':type_of_step', $motor->type_of_step);

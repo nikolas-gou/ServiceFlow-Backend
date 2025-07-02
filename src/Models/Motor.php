@@ -23,7 +23,11 @@ class Motor
     public $connectionism;
     public $volt;
     public $poles;
-    public $how_many_coils_with;
+    // Νέα πεδία για coils
+    public $coils_count;
+    public $half_coils_count;
+    public $helper_coils_count;
+    public $helper_half_coils_count;
     public $type_of_step;
     public $type_of_motor;
     public $type_of_volt;
@@ -50,7 +54,11 @@ class Motor
         $this->connectionism = $data['connectionism'] ?? "simple";
         $this->volt = $data['volt'] ?? "380VY";
         $this->poles = $data['poles'] ?? null;
-        $this->how_many_coils_with = $data['how_many_coils_with'] ?? 1;
+        // Νέα coils πεδία
+        $this->coils_count = $data['coils_count'] ?? 1;
+        $this->half_coils_count = $data['half_coils_count'] ?? 1;
+        $this->helper_coils_count = $data['helper_coils_count'] ?? 1;
+        $this->helper_half_coils_count = $data['helper_half_coils_count'] ?? 1;
         $this->type_of_step = $data['type_of_step'] ?? "standard";
         $this->type_of_motor = $data['type_of_motor'] ?? "el_motor";
         $this->type_of_volt = $data['type_of_volt'] ?? "3-phase";
@@ -79,7 +87,11 @@ class Motor
             'connectionism' => $frontendData['connectionism'] ?? 'simple',
             'volt' => $frontendData['volt'] ?? '380VY',
             'poles' => $frontendData['poles'] ?? '6',
-            'how_many_coils_with' => $frontendData['howManyCoilsWith'] ?? '1',
+            // Νέα coils πεδία
+            'coils_count' => $frontendData['coilsCount'] ?? 1,
+            'half_coils_count' => $frontendData['halfCoilsCount'] ?? 1,
+            'helper_coils_count' => $frontendData['helperCoilsCount'] ?? 1,
+            'helper_half_coils_count' => $frontendData['helperHalfCoilsCount'] ?? 1,
             'type_of_step' => $frontendData['typeOfStep'] ?? 'standard',
             'type_of_motor' => $frontendData['typeOfMotor'] ?? 'el_motor',
             'type_of_volt' => $frontendData['typeOfVolt'] ?? '3-phase',
@@ -113,7 +125,11 @@ class Motor
             'connectionism' => $this->connectionism,
             'volt' => $this->volt,
             'poles' => $this->poles,
-            'howManyCoilsWith' => $this->how_many_coils_with,
+            // Νέα coils πεδία
+            'coilsCount' => $this->coils_count,
+            'halfCoilsCount' => $this->half_coils_count,
+            'helperCoilsCount' => $this->helper_coils_count,
+            'helperHalfCoilsCount' => $this->helper_half_coils_count,
             'typeOfStep' => $this->type_of_step,
             'typeOfMotor' => $this->type_of_motor,
             'typeOfVolt' => $this->type_of_volt,
@@ -124,7 +140,6 @@ class Motor
                 : []
         ];
     }
-
 
     public function isValid(): bool
     {
@@ -151,7 +166,11 @@ class Motor
             'connectionism' => $this->connectionism,
             'volt' => $this->volt,
             'poles' => $this->poles,
-            'how_many_coils_with' => $this->how_many_coils_with,
+            // Νέα coils πεδία
+            'coils_count' => $this->coils_count,
+            'half_coils_count' => $this->half_coils_count,
+            'helper_coils_count' => $this->helper_coils_count,
+            'helper_half_coils_count' => $this->helper_half_coils_count,
             'type_of_step' => $this->type_of_step,
             "type_of_motor" => $this->type_of_motor,
             "type_of_volt" => $this->type_of_volt,
