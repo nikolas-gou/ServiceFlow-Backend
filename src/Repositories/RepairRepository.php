@@ -129,6 +129,12 @@ class RepairRepository
                 // Χρήση υπάρχοντος πελάτη
                 $customer_id = $repairData->customer->id;
                 error_log("Using existing customer with ID: " . $customer_id);
+                
+                // Έλεγχος και ενημέρωση στοιχείων πελάτη αν έχουν αλλάξει
+                if ($this->customerRepository) {
+                    $this->customerRepository->checkAndUpdateCustomerDetails($repairData->customer);
+                    error_log("Checked and potentially updated customer details for ID: " . $customer_id);
+                }
             } else {
                 // Δημιουργία νέου πελάτη
                 if ($this->customerRepository) {

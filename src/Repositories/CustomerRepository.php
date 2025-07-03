@@ -307,4 +307,29 @@ class CustomerRepository
         return (int) $stmt->fetchColumn();
     }
 
+    public function checkAndUpdateCustomerDetails(Customer $newCustomerData): bool
+    {
+        // Get existing customer data
+        $existingCustomer = $this->getCustomerById($newCustomerData->id);
+        if (!$existingCustomer) {
+            return false;
+        }
+
+        // Check if any details have changed
+        $hasChanges = false;
+        if ($existingCustomer['email'] !== $newCustomerData->email ||
+            $existingCustomer['phone'] !== $newCustomerData->phone ||
+            $existingCustomer['type'] !== $newCustomerData->type ||
+            $existingCustomer['name'] !== $newCustomerData->name) {
+            $hasChanges = true;
+        }
+
+        // If there are changes, update the customer
+        if ($hasChanges) {
+            return $this->updateCustomer($newCustomerData);
+        }
+
+        return true;
+    }
+
 }
