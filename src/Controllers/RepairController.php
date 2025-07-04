@@ -65,4 +65,20 @@ class RepairController
             return ResponseHelper::serverError($response, 'Σφάλμα κατά τη δημιουργία της επισκευής: ' . $e->getMessage());
         }
     }
+
+    public function softDelete(Request $request, Response $response, $args): Response
+    {
+        try {
+            $id = $args['id'];
+            $success = $this->repairRepository->softDelete($id);
+            
+            if (!$success) {
+                return ResponseHelper::notFound($response, 'Η επισκευή δεν βρέθηκε');
+            }
+            
+            return ResponseHelper::success($response, null, 'Η επισκευή μεταφέρθηκε στον κάδο ανακύκλωσης');
+        } catch (\Exception $e) {
+            return ResponseHelper::serverError($response, 'Σφάλμα κατά τη διαγραφή της επισκευής: ' . $e->getMessage());
+        }
+    }
 }

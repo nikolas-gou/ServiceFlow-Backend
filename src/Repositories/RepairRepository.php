@@ -27,7 +27,7 @@ class RepairRepository
 
     public function getAll(bool $toFrontendFormat = true)
     {
-        $query = "SELECT * FROM repairs ORDER BY created_at DESC";
+        $query = "SELECT * FROM repairs WHERE deleted_at IS NULL ORDER BY created_at DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $repairsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -362,5 +362,20 @@ class RepairRepository
         }
         
         return $results;
+    }
+
+    public function softDelete($id)
+    {
+        try {
+            $query = "UPDATE repairs SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
+            $stmt->execute();
+            
+            return $stmt->rowCount() > 0;
+        } catch (\Exception $e) {
+            error_log("Error in softDelete for ID {$id}: " . $e->getMessage());
+            throw $e;
+        }
     }
 }
