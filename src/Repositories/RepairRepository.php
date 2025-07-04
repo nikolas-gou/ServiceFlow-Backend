@@ -65,7 +65,7 @@ class RepairRepository
     public function getRepairById($id)
     {
         try {
-            $query = "SELECT * FROM repairs WHERE id = :id";
+            $query = "SELECT * FROM repairs WHERE id = :id AND deleted_at IS NULL";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
             $stmt->execute();
@@ -234,7 +234,7 @@ class RepairRepository
     // Statistics
     public function getTotalCount(): int
     {
-        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM repairs");
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM repairs WHERE deleted_at IS NULL");
         $stmt->execute();
         return (int) $stmt->fetchColumn();
     }
@@ -251,6 +251,7 @@ class RepairRepository
             FROM repairs 
             WHERE YEAR(created_at) = ? 
             AND MONTH(created_at) <= ?
+            AND deleted_at IS NULL
             GROUP BY MONTH(created_at)
             ORDER BY month ASC
         ");
@@ -285,6 +286,7 @@ class RepairRepository
             FROM repairs 
             WHERE YEAR(created_at) = ? 
             AND MONTH(created_at) <= ?
+            AND deleted_at IS NULL
             /* AND status = 'completed' */
             GROUP BY MONTH(created_at)
             ORDER BY month ASC
@@ -314,6 +316,7 @@ class RepairRepository
             SELECT COUNT(*) 
             FROM repairs 
             WHERE DATE_FORMAT(created_at, '%Y-%m') = ?
+            AND deleted_at IS NULL
         ");
         $stmt->execute([$monthKey]);
         return (int) $stmt->fetchColumn();
@@ -326,6 +329,7 @@ class RepairRepository
             SELECT COALESCE(SUM(cost), 0) 
             FROM repairs 
             WHERE DATE_FORMAT(created_at, '%Y-%m') = ?
+            AND deleted_at IS NULL
             /* AND repairstatus = 'completed' */
         ");
         $stmt->execute([$monthKey]);
@@ -338,6 +342,7 @@ class RepairRepository
             SELECT COALESCE(SUM(cost), 0) 
             FROM repairs 
             WHERE YEAR(created_at) = ?
+            AND deleted_at IS NULL
              /* AND repairstatus = 'completed' */
         ");
         $stmt->execute([$year]);
@@ -348,7 +353,8 @@ class RepairRepository
     {
         $stmt = $this->conn->prepare("
             SELECT repair_status, COUNT(*) as count
-            FROM repairs 
+            FROM repairs
+            WHERE deleted_at IS NULL
             GROUP BY repair_status
         ");
         $stmt->execute();

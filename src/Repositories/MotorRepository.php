@@ -17,7 +17,10 @@ class MotorRepository
 
     public function getAll(): array
     {
-        $query = "SELECT * FROM motors ORDER BY created_at DESC";
+        $query = "SELECT m.* FROM motors m 
+                  INNER JOIN repairs r ON m.id = r.motor_id 
+                  WHERE r.deleted_at IS NULL 
+                  ORDER BY m.created_at DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $motorsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -33,7 +36,9 @@ class MotorRepository
 
     public function getMotorById($id): ?array
     {
-        $query = "SELECT * FROM motors WHERE id = :id";
+        $query = "SELECT m.* FROM motors m 
+                  INNER JOIN repairs r ON m.id = r.motor_id 
+                  WHERE m.id = :id AND r.deleted_at IS NULL";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
         $stmt->execute();
@@ -63,7 +68,13 @@ class MotorRepository
 
     public function getAllBrands(): array
     {
-        $query = "SELECT DISTINCT manufacturer FROM motors WHERE manufacturer IS NOT NULL AND manufacturer != '' ORDER BY manufacturer";
+        $query = "SELECT DISTINCT m.manufacturer 
+                  FROM motors m 
+                  INNER JOIN repairs r ON m.id = r.motor_id  
+                  WHERE r.deleted_at IS NULL 
+                  AND m.manufacturer IS NOT NULL 
+                  AND m.manufacturer != '' 
+                  ORDER BY m.manufacturer";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_COLUMN);
@@ -74,13 +85,15 @@ class MotorRepository
         try {
             $stmt = $this->conn->prepare("
                 SELECT 
-                    manufacturer, 
+                    m.manufacturer, 
                     COUNT(*) as count
-                FROM motors 
-                WHERE manufacturer IS NOT NULL 
-                AND manufacturer != '' 
-                AND TRIM(manufacturer) != ''
-                GROUP BY manufacturer 
+                FROM motors m
+                INNER JOIN repairs r ON m.repair_id = r.id 
+                WHERE r.deleted_at IS NULL 
+                AND m.manufacturer IS NOT NULL 
+                AND m.manufacturer != '' 
+                AND TRIM(m.manufacturer) != ''
+                GROUP BY m.manufacturer 
                 ORDER BY count DESC 
                 LIMIT ?
             ");
@@ -162,7 +175,11 @@ class MotorRepository
     // Statistics
     public function getTotalCount(): int
     {
-        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM motors");
+        $stmt = $this->conn->prepare("
+            SELECT COUNT(*) 
+            FROM motors m
+            INNER JOIN repairs r ON m.id = r.motor_id  
+            WHERE r.deleted_at IS NULL");
         $stmt->execute();
         return (int) $stmt->fetchColumn();
     }
@@ -174,12 +191,14 @@ class MotorRepository
         
         $stmt = $this->conn->prepare("
             SELECT 
-                MONTH(created_at) as month,
+                MONTH(m.created_at) as month,
                 COUNT(*) as count
-            FROM motors 
-            WHERE YEAR(created_at) = ? 
-            AND MONTH(created_at) <= ?
-            GROUP BY MONTH(created_at)
+            FROM motors m
+            INNER JOIN repairs r ON m.id = r.motor_id  
+            WHERE r.deleted_at IS NULL 
+            AND YEAR(m.created_at) = ? 
+            AND MONTH(m.created_at) <= ?
+            GROUP BY MONTH(m.created_at)
             ORDER BY month ASC
         ");
         
@@ -205,8 +224,10 @@ class MotorRepository
     {
         $stmt = $this->conn->prepare("
             SELECT COUNT(*) 
-            FROM motors 
-            WHERE DATE_FORMAT(created_at, '%Y-%m') = ?
+            FROM motors m
+            INNER JOIN repairs r ON m.id = r.motor_id  
+            WHERE r.deleted_at IS NULL 
+            AND DATE_FORMAT(m.created_at, '%Y-%m') = ?
         ");
         $stmt->execute([$monthKey]);
         return (int) $stmt->fetchColumn();
