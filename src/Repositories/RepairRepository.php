@@ -231,6 +231,102 @@ class RepairRepository
         }
     }
 
+    public function updateRepair($id, $repairData)
+    {
+        try {
+            error_log("RepairRepository::updateRepair - Starting with data: " . json_encode($repairData));
+            
+            $this->conn->beginTransaction();
+
+            // 1. Ενημέρωση του πελάτη
+            $customer_id = null;
+            if (isset($repairData->customer->id) && $repairData->customer->id > 0) {
+                // Ενημέρωση υπάρχοντος πελάτη
+                if ($this->customerRepository) {
+                    $this->customerRepository->checkAndUpdateCustomerDetails($repairData->customer);
+                    $customer_id = $repairData->customer->id;
+                    error_log("Updated existing customer with ID: " . $customer_id);
+                }
+            } else {
+                // Δημιουργία νέου πελάτη
+                if ($this->customerRepository) {
+                    $customer_id = $this->customerRepository->createCustomer($repairData->customer);
+                    error_log("Created new customer with ID: " . $customer_id);
+                }
+            }
+
+            // 2. Ενημέρωση του κινητήρα
+            $motor_id = null;
+            if (isset($repairData->motor->id) && $repairData->motor->id > 0) {
+                // Ενημέρωση υπάρχοντος κινητήρα
+                if ($this->motorRepository) {
+                    $this->motorRepository->updateMotor($repairData->motor, $customer_id);
+                    $motor_id = $repairData->motor->id;
+                    error_log("Updated existing motor with ID: " . $motor_id);
+                }
+            } else {
+                // Δημιουργία νέου κινητήρα
+                if ($this->motorRepository) {
+                    $motor_id = $this->motorRepository->createMotor($repairData->motor, $customer_id);
+                    error_log("Created new motor with ID: " . $motor_id);
+                }
+            }
+
+            // 3. Ενημέρωση της επισκευής
+            $repairQuery = "UPDATE repairs SET 
+                customer_id = :customer_id,
+                motor_id = :motor_id,
+                description = :description,
+                repair_status = :repair_status,
+                cost = :cost,
+                is_arrived = :is_arrived,
+                estimated_is_complete = :estimated_is_complete
+                WHERE id = :id AND deleted_at IS NULL";
+
+            $repairStmt = $this->conn->prepare($repairQuery);
+            $repairStmt->bindParam(':id', $id);
+            $repairStmt->bindParam(':customer_id', $customer_id);
+            $repairStmt->bindParam(':motor_id', $motor_id);
+            $repairStmt->bindParam(':description', $repairData->description);
+            $repairStmt->bindParam(':repair_status', $repairData->repair_status);
+            $repairStmt->bindParam(':cost', $repairData->cost);
+            $repairStmt->bindParam(':is_arrived', $repairData->is_arrived);
+            $repairStmt->bindParam(':estimated_is_complete', $repairData->estimated_is_complete);
+            $repairStmt->execute();
+
+            // 4. Ενημέρωση των repair fault links
+            if (!empty($repairData->repairFaultLinks)) {
+                // Διαγραφή παλιών συνδέσεων
+                $deleteQuery = "DELETE FROM repair_fault_links WHERE repair_id = :repair_id";
+                $deleteStmt = $this->conn->prepare($deleteQuery);
+                $deleteStmt->bindParam(':repair_id', $id);
+                $deleteStmt->execute();
+
+                // Προσθήκη νέων συνδέσεων
+                foreach ($repairData->repairFaultLinks as $link) {
+                    $insertQuery = "INSERT INTO repair_fault_links (repair_id, common_fault_id)
+                        VALUES (:repair_id, :common_fault_id)";
+                    $insertStmt = $this->conn->prepare($insertQuery);
+                    $insertStmt->bindParam(':repair_id', $id);
+                    $insertStmt->bindParam(':common_fault_id', $link->common_fault_id);
+                    $insertStmt->execute();
+                }
+            }
+
+            $this->conn->commit();
+
+            // Επιστροφή της ενημερωμένης επισκευής
+            return $this->getRepairById($id);
+            
+        } catch (\Exception $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            error_log("Error in updateRepair: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
     // Statistics
     public function getTotalCount(): int
     {
