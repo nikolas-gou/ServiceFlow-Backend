@@ -172,6 +172,94 @@ class MotorRepository
         return (int) $this->conn->lastInsertId();
     }
 
+    public function updateMotor(Motor $motor, $customer_id = null)
+    {
+        try {
+            $motorQuery = "UPDATE motors SET 
+                customer_id = :customer_id,
+                serial_number = :serial_number,
+                manufacturer = :manufacturer,
+                kw = :kw,
+                hp = :hp,
+                rpm = :rpm,
+                step = :step,
+                half_step = :half_step,
+                helper_step = :helper_step,
+                helper_half_step = :helper_half_step,
+                spiral = :spiral,
+                half_spiral = :half_spiral,
+                helper_spiral = :helper_spiral,
+                helper_half_spiral = :helper_half_spiral,
+                connectionism = :connectionism,
+                volt = :volt,
+                poles = :poles,
+                coils_count = :coils_count,
+                half_coils_count = :half_coils_count,
+                helper_coils_count = :helper_coils_count,
+                helper_half_coils_count = :helper_half_coils_count,
+                type_of_motor = :type_of_motor,
+                type_of_volt = :type_of_volt,
+                type_of_step = :type_of_step
+                WHERE id = :id";
+            
+            $motorStmt = $this->conn->prepare($motorQuery);
+
+            $motorStmt->bindParam(':id', $motor->id, \PDO::PARAM_INT);
+            $motorStmt->bindParam(':customer_id', $customer_id, \PDO::PARAM_INT);
+            $motorStmt->bindParam(':serial_number', $motor->serial_number);
+            $motorStmt->bindParam(':manufacturer', $motor->manufacturer);
+            $motorStmt->bindParam(':kw', $motor->kw);
+            $motorStmt->bindParam(':hp', $motor->hp);
+            $motorStmt->bindParam(':rpm', $motor->rpm);
+            $motorStmt->bindParam(':step', $motor->step);
+            $motorStmt->bindParam(':half_step', $motor->half_step);
+            $motorStmt->bindParam(':helper_step', $motor->helper_step);
+            $motorStmt->bindParam(':helper_half_step', $motor->helper_half_step);
+            $motorStmt->bindParam(':spiral', $motor->spiral);
+            $motorStmt->bindParam(':half_spiral', $motor->half_spiral);
+            $motorStmt->bindParam(':helper_spiral', $motor->helper_spiral);
+            $motorStmt->bindParam(':helper_half_spiral', $motor->helper_half_spiral);
+            $motorStmt->bindParam(':connectionism', $motor->connectionism);
+            $motorStmt->bindParam(':volt', $motor->volt);
+            $motorStmt->bindParam(':poles', $motor->poles);
+            $motorStmt->bindParam(':coils_count', $motor->coils_count);
+            $motorStmt->bindParam(':half_coils_count', $motor->half_coils_count);
+            $motorStmt->bindParam(':helper_coils_count', $motor->helper_coils_count);
+            $motorStmt->bindParam(':helper_half_coils_count', $motor->helper_half_coils_count);
+            $motorStmt->bindParam(':type_of_motor', $motor->type_of_motor);
+            $motorStmt->bindParam(':type_of_volt', $motor->type_of_volt);
+            $motorStmt->bindParam(':type_of_step', $motor->type_of_step);
+            
+            $motorStmt->execute();
+
+            // Ενημέρωση των motor cross section links
+            if (isset($motor->motorCrossSectionLinks) && is_array($motor->motorCrossSectionLinks)) {
+                // Διαγραφή παλιών συνδέσεων
+                $deleteQuery = "DELETE FROM motor_cross_section_links WHERE motor_id = :motor_id";
+                $deleteStmt = $this->conn->prepare($deleteQuery);
+                $deleteStmt->bindParam(':motor_id', $motor->id, \PDO::PARAM_INT);
+                $deleteStmt->execute();
+
+                // Προσθήκη νέων συνδέσεων
+                foreach ($motor->motorCrossSectionLinks as $link) {
+                    $insertQuery = "INSERT INTO motor_cross_section_links (motor_id, cross_section, type)
+                        VALUES (:motor_id, :cross_section, :type)";
+                    $insertStmt = $this->conn->prepare($insertQuery);
+                    $insertStmt->bindParam(':motor_id', $motor->id, \PDO::PARAM_INT);
+                    $insertStmt->bindParam(':cross_section', $link->cross_section);
+                    $insertStmt->bindParam(':type', $link->type);
+                    $insertStmt->execute();
+                }
+            }
+
+            return $this->getMotorById($motor->id);
+            
+        } catch (\Exception $e) {
+            error_log("Error in updateMotor: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
     // Statistics
     public function getTotalCount(): int
     {
