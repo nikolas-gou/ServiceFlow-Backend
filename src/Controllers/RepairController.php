@@ -81,4 +81,29 @@ class RepairController
             return ResponseHelper::serverError($response, 'Σφάλμα κατά τη διαγραφή της επισκευής: ' . $e->getMessage());
         }
     }
+
+    public function updateRepair(Request $request, Response $response, $args): Response
+    {
+        try {
+            $id = $args['id'];
+            $data = json_decode($request->getBody()->getContents(), true);
+
+            if (!isset($data['repair']) || !isset($data['customer']) || !isset($data['motor'])) {
+                return ResponseHelper::validationError($response, ['Λείπουν απαραίτητα δεδομένα (repair, customer ή motor)']);
+            }
+
+            $repair = Repair::fromFrontendFormat($data['repair']);
+            
+            error_log("Updating repair with data: " . json_encode($data));
+            
+            $updatedRepair = $this->repairRepository->updateRepair($id, $repair);
+            
+            error_log("Updated repair result: " . json_encode($updatedRepair));
+            
+            return ResponseHelper::success($response, $updatedRepair, 'Η επισκευή ενημερώθηκε επιτυχώς');
+        } catch (\Exception $e) {
+            error_log("Error updating repair: " . $e->getMessage());
+            return ResponseHelper::serverError($response, 'Σφάλμα κατά την ενημέρωση της επισκευής: ' . $e->getMessage());
+        }
+    }
 }
