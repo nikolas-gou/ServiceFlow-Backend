@@ -35,7 +35,6 @@ $app->group('/api', function (RouteCollectorProxy $group) {
 
     // Statistics
     $group->group('/statistics', function (RouteCollectorProxy $statsGroup) {
-        $statsGroup->get('/overview', [StatisticsController::class, 'getOverviewStats']);
         $statsGroup->get('/dashboard', [StatisticsController::class, 'getDashboardData']);
         $statsGroup->get('/customers', [StatisticsController::class, 'getCustomerStats']);
         $statsGroup->get('/connectionism', [StatisticsController::class, 'getConnectionism']);
