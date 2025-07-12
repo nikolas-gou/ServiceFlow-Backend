@@ -320,4 +320,42 @@ class MotorRepository
         $stmt->execute([$monthKey]);
         return (int) $stmt->fetchColumn();
     }
+
+    /**
+     * Επιστρέφει τα συνολικά counts ανά τύπο σύνδεσης
+     */
+    public function getConnectionismCounts(): array
+    {
+        $stmt = $this->conn->prepare("
+            SELECT connectionism, COUNT(*) as count
+            FROM motors m
+            INNER JOIN repairs r ON m.id = r.motor_id
+            WHERE r.deleted_at IS NULL
+            GROUP BY connectionism
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Επιστρέφει τα μηνιαία δεδομένα για συγκεκριμένο τύπο σύνδεσης
+     */
+    public function getMonthlyConnectionismData(string $connectionismType, int $year, int $month): array
+    {
+        $stmt = $this->conn->prepare("
+            SELECT 
+                MONTH(m.created_at) as month,
+                COUNT(*) as count
+            FROM motors m
+            INNER JOIN repairs r ON m.id = r.motor_id
+            WHERE r.deleted_at IS NULL 
+            AND m.connectionism = ?
+            AND YEAR(m.created_at) = ? 
+            AND MONTH(m.created_at) <= ?
+            GROUP BY MONTH(m.created_at)
+            ORDER BY month ASC
+        ");
+        $stmt->execute([$connectionismType, $year, $month]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
 }
