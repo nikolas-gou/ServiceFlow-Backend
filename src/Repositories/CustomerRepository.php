@@ -105,23 +105,34 @@ class CustomerRepository
         return (int) $stmt->fetchColumn();
     }
 
-    public function getMonthlyTrends(): array
+    /**
+   * Γενική μέθοδος για μηνιαία trends πελατών με optional φίλτρο
+   */
+  private function getMonthlyTrendsWithFilter(?string $filterColumn = null, ?string $filterValue = null): array
     {
         $currentYear = date('Y');
         $currentMonth = (int) date('m');
+        
+        $whereClause = "WHERE YEAR(created_at) = ? AND MONTH(created_at) <= ?";
+        $params = [$currentYear, $currentMonth];
+        
+        // Προσθήκη φίλτρου αν δοθεί
+        if ($filterColumn && $filterValue) {
+            $whereClause .= " AND $filterColumn = ?";
+            $params[] = $filterValue;
+        }
         
         $stmt = $this->conn->prepare("
             SELECT 
                 MONTH(created_at) as month,
                 COUNT(*) as count
             FROM customers 
-            WHERE YEAR(created_at) = ? 
-            AND MONTH(created_at) <= ?
+            $whereClause
             GROUP BY MONTH(created_at)
             ORDER BY month ASC
         ");
         
-        $stmt->execute([$currentYear, $currentMonth]);
+        $stmt->execute($params);
         $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         
         // Δημιουργία array με όλους τους μήνες (0-based: index 0 = Ιανουάριος)
@@ -138,6 +149,17 @@ class CustomerRepository
         
         return $monthlyData;
     }
+
+    public function getMonthlyTrends(): array
+    {
+        return $this->getMonthlyTrendsWithFilter();
+    }
+
+    public function getMonthlyTrendsByType($type): array
+    {
+        return $this->getMonthlyTrendsWithFilter('type', $type);
+    }
+
     public function getCountByType(string $type): int
     {
         $stmt = $this->conn->prepare("SELECT COUNT(*) FROM customers WHERE type = ?");
