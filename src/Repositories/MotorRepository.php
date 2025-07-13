@@ -261,23 +261,30 @@ class MotorRepository
     }
 
     // Statistics
-    public function getTotalCount(): int
+    public function getTotalCountFiltered(array $filters = []): int
     {
-        $stmt = $this->conn->prepare("
+        $sql = "
             SELECT COUNT(*) 
             FROM motors m
             INNER JOIN repairs r ON m.id = r.motor_id  
-            WHERE r.deleted_at IS NULL");
-        $stmt->execute();
+            WHERE r.deleted_at IS NULL
+        ";
+        $params = [];
+        foreach ($filters as $field => $value) {
+            $sql .= " AND $field = ?";
+            $params[] = $value;
+        }
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($params);
         return (int) $stmt->fetchColumn();
     }
-
-    public function getMonthlyTrends(): array
+    
+    public function getMonthlyTrendsFiltered(array $filters = []): array
     {
         $currentYear = date('Y');
         $currentMonth = (int) date('m');
         
-        $stmt = $this->conn->prepare("
+        $sql = "
             SELECT 
                 MONTH(m.created_at) as month,
                 COUNT(*) as count
@@ -286,25 +293,24 @@ class MotorRepository
             WHERE r.deleted_at IS NULL 
             AND YEAR(m.created_at) = ? 
             AND MONTH(m.created_at) <= ?
-            GROUP BY MONTH(m.created_at)
-            ORDER BY month ASC
-        ");
-        
-        $stmt->execute([$currentYear, $currentMonth]);
+        ";
+        $params = [$currentYear, $currentMonth];
+        foreach ($filters as $field => $value) {
+            $sql .= " AND $field = ?";
+            $params[] = $value;
+        }
+        $sql .= " GROUP BY MONTH(m.created_at) ORDER BY month ASC";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($params);
         $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        
-        // Δημιουργία array με όλους τους μήνες (0-based: index 0 = Ιανουάριος)
         $monthlyData = [];
         for ($month = 1; $month <= $currentMonth; $month++) {
-            $monthlyData[] = 0; // Default value για κάθε μήνα
+            $monthlyData[] = 0;
         }
-        
-        // Συμπλήρωση με πραγματικά δεδομένα
         foreach ($results as $row) {
-            $monthIndex = (int)$row['month'] - 1; // Μετατροπή σε 0-based index
+            $monthIndex = (int)$row['month'] - 1;
             $monthlyData[$monthIndex] = (int)$row['count'];
         }
-        
         return $monthlyData;
     }
 
