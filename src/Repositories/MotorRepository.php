@@ -82,39 +82,33 @@ class MotorRepository
 
     public function getTopBrands(int $limit = 5): array
     {
-        try {
-            $stmt = $this->conn->prepare("
-                SELECT 
-                    m.manufacturer, 
-                    COUNT(*) as count
-                FROM motors m
-                INNER JOIN repairs r ON m.repair_id = r.id 
-                WHERE r.deleted_at IS NULL 
-                AND m.manufacturer IS NOT NULL 
-                AND m.manufacturer != '' 
-                AND TRIM(m.manufacturer) != ''
-                GROUP BY m.manufacturer 
-                ORDER BY count DESC 
-                LIMIT ?
-            ");
-            
-            $stmt->bindParam(1, $limit, \PDO::PARAM_INT);
-            $stmt->execute();
-            
-            $results = [];
-            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-                $results[] = [
-                    'manufacturer' => trim($row['manufacturer']),
-                    'count' => (int) $row['count']
-                ];
-            }
-            
-            return $results;
-            
-        } catch (\Exception $e) {
-            error_log("Error in getTopBrands: " . $e->getMessage());
-            return [];
+        $stmt = $this->conn->prepare("
+            SELECT 
+                m.manufacturer, 
+                COUNT(*) as count
+            FROM motors m
+            INNER JOIN repairs r ON m.id = r.motor_id 
+            WHERE r.deleted_at IS NULL 
+            AND m.manufacturer IS NOT NULL 
+            AND m.manufacturer != '' 
+            AND TRIM(m.manufacturer) != '' 
+            GROUP BY m.manufacturer 
+            ORDER BY count DESC 
+            LIMIT ?
+        ");
+        
+        $stmt->bindParam(1, $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $results = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $results[] = [
+                'manufacturer' => trim($row['manufacturer']),
+                'count' => (int) $row['count']
+            ];
         }
+        
+        return $results;
     }
 
     public function createMotor(Motor $motor, $customer_id): int
