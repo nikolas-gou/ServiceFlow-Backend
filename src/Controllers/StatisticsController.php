@@ -8,21 +8,25 @@ use App\Repositories\RepairRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Helpers\ResponseHelper;
+use App\Services\DashboardService;
 
 class StatisticsController
 {
     private $customerRepository;
     private $motorRepository;
     private $repairRepository;
+    private $dashboardService;
 
     public function __construct(
         CustomerRepository $customerRepository,
         MotorRepository $motorRepository,
-        RepairRepository $repairRepository
+        RepairRepository $repairRepository,
+        DashboardService $dashboardService
     ) {
         $this->customerRepository = $customerRepository;
         $this->motorRepository = $motorRepository;
         $this->repairRepository = $repairRepository;
+        $this->dashboardService = $dashboardService;
     }
 
 
@@ -32,46 +36,8 @@ class StatisticsController
     public function getDashboardData(Request $request, Response $response): Response
     {
         try {
-            $currentMonth = date('Y-m');
-            $currentYear = date('Y');
-            
-            $dashboardData = [
-                'customer' => [
-                    'totalCustomers' => $this->customerRepository->getTotalCount(),
-                    'customerTypes' => [
-                        'individual' => $this->customerRepository->getCountByType('individual'),
-                        'factory' => $this->customerRepository->getCountByType('factory')
-                    ],
-                    'trends' => [
-                        'monthlyCustomerTrends' => $this->customerRepository->getMonthlyTrends(),
-                        'monthlyIndividualCustomerTrends' => $this->customerRepository->getMonthlyTrendsByType("individual"),
-                        'monthlyFactoryCustomerTrends' => $this->customerRepository->getMonthlyTrendsByType("factory"),
-                    ],
-                    'topCustomersByRevenue' => $this->customerRepository->getTopCustomerByRevenue(1),
-                ],
-                'motor' => [
-                    'totalMotors' => $this->motorRepository->getTotalCount(),
-                    'topBrands' => $this->motorRepository->getTopBrands(5),
-                    'trends' => [ 
-                        'monthlyMotorTrends' => $this->motorRepository->getMonthlyTrends(),
-                    ]
-                ],
-                'repair' => [
-                   'totalRepairs' => $this->repairRepository->getTotalCount(),
-                   'trends' => [
-                        'monthlyRepairTrends' => $this->repairRepository->getMonthlyTrends(),
-                   ], 
-                ],
-                'revenue' => [
-                    'yearlyRevenue' => $this->repairRepository->getRevenueByYear(date('Y')),
-                    'trends' => [
-                        'monthlyRevenueTrends' => $this->repairRepository->getMonthlyRevenueTrends()
-                    ]
-                ],
-            ];
-
+            $dashboardData = $this->dashboardService->getDashboardData();
             return ResponseHelper::success($response, $dashboardData, 'Dashboard data retrieved successfully');
-
         } catch (\Exception $e) {
             return ResponseHelper::serverError($response, 'Error fetching dashboard data: ' . $e->getMessage());
         }
@@ -83,80 +49,10 @@ class StatisticsController
     public function getCustomerStats(Request $request, Response $response): Response
     {
         try {
-            $stats = [
-                'totalCustomers' => $this->customerRepository->getTotalCount(),
-                'customerTypes' => [
-                    'individual' => $this->customerRepository->getCountByType('individual'),
-                    'factory' => $this->customerRepository->getCountByType('factory')
-                ],
-                'monthlyTrends' => $this->customerRepository->getMonthlyTrends(),
-                'customersByTypeAndMonth' => $this->customerRepository->getCustomersByTypeAndMonth(),
-                'topCustomersByRevenue' => $this->customerRepository->getTopCustomerByRevenue(5),
-                'typeStats' => $this->customerRepository->getCustomerTypeStats()
-            ];
-
-            return ResponseHelper::success($response, $stats, 'Customer statistics retrieved successfully');
-
+           $customerStats = $this->dashboardService->getCustomerStats();
+            return ResponseHelper::success($response, $customerStats, 'Customer statistics retrieved successfully');
         } catch (\Exception $e) {
             return ResponseHelper::serverError($response, 'Error fetching customer statistics: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Στατιστικά επισκευών
-     */
-    public function getRepairStats(Request $request, Response $response): Response
-    {
-        try {
-            $stats = [
-                'totalCount' => $this->repairRepository->getTotalCount(),
-                'monthlyTrends' => $this->repairRepository->getMonthlyTrends(),
-                'byStatus' => $this->repairRepository->getCountByStatus(),
-                'monthlyRevenue' => $this->repairRepository->getMonthlyRevenueTrends(),
-                'yearlyRevenue' => $this->repairRepository->getRevenueByYear(date('Y')),
-                'currentMonthRevenue' => $this->repairRepository->getRevenueByMonth(date('Y-m'))
-            ];
-
-            return ResponseHelper::success($response, $stats, 'Repair statistics retrieved successfully');
-
-        } catch (\Exception $e) {
-            return ResponseHelper::serverError($response, 'Error fetching repair statistics: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Στατιστικά μοτέρ
-     */
-    public function getMotorStats(Request $request, Response $response): Response
-    {
-        try {
-            $stats = [
-                'totalCount' => $this->motorRepository->getTotalCount(),
-                'monthlyTrends' => $this->motorRepository->getMonthlyTrends(),
-                'topBrands' => $this->motorRepository->getTopBrands(10),
-                'allBrands' => $this->motorRepository->getAllBrands()
-            ];
-
-            return ResponseHelper::success($response, $stats, 'Motor statistics retrieved successfully');
-
-        } catch (\Exception $e) {
-            return ResponseHelper::serverError($response, 'Error fetching motor statistics: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Top brands statistics
-     */
-    public function getTopBrands(Request $request, Response $response): Response
-    {
-        try {
-            $limit = (int) ($request->getQueryParams()['limit'] ?? 10);
-            $brands = $this->motorRepository->getTopBrands($limit);
-
-            return ResponseHelper::success($response, $brands, 'Top brands retrieved successfully');
-
-        } catch (\Exception $e) {
-            return ResponseHelper::serverError($response, 'Error fetching top brands: ' . $e->getMessage());
         }
     }
 
