@@ -418,20 +418,6 @@ class RepairRepository
         return (int) $stmt->fetchColumn();
     }
 
-    public function getRevenueByMonth(string $monthKey): float
-    {
-        // Υποθέτω ότι έχεις πεδίο 'cost' ή 'price' στον πίνακα repairs
-        $stmt = $this->conn->prepare("
-            SELECT COALESCE(SUM(cost), 0) 
-            FROM repairs 
-            WHERE DATE_FORMAT(created_at, '%Y-%m') = ?
-            AND deleted_at IS NULL
-            /* AND repairstatus = 'completed' */
-        ");
-        $stmt->execute([$monthKey]);
-        return (float) $stmt->fetchColumn();
-    }
-
     public function getRevenueByYear(string $year): float
     {
         $stmt = $this->conn->prepare("
@@ -445,26 +431,6 @@ class RepairRepository
         return (float) $stmt->fetchColumn();
     }
 
-    public function getCountByStatus(): array
-    {
-        $stmt = $this->conn->prepare("
-            SELECT repair_status, COUNT(*) as count
-            FROM repairs
-            WHERE deleted_at IS NULL
-            GROUP BY repair_status
-        ");
-        $stmt->execute();
-        
-        $results = [];
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $results[] = [
-                'repairStatus' => $row['repair_status'],
-                'count' => (int) $row['count']
-            ];
-        }
-        
-        return $results;
-    }
 
     public function softDelete($id)
     {
