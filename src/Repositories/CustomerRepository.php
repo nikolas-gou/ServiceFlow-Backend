@@ -245,25 +245,6 @@ class CustomerRepository
     }
 
     /**
-     * Στατιστικά ανά κατηγορία πελατών
-     */
-    public function getCustomerTypeStats(): array
-    {
-        $stmt = $this->conn->prepare("
-            SELECT 
-                type,
-                COUNT(*) as totalCount,
-                COUNT(CASE WHEN YEAR(created_at) = YEAR(CURDATE()) THEN 1 END) as thisYearCount,
-                COUNT(CASE WHEN MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) THEN 1 END) as thisMonthCount
-            FROM customers 
-            GROUP BY type
-        ");
-        
-        $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-    }
-
-    /**
      * Πελάτες ανά μήνα με περισσότερες λεπτομέρειες
      */
     public function getDetailedMonthlyStats(): array
