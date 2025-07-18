@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\ServiceHelper;
 use App\Services\RepairService;
 use App\Services\CustomerService;
 use App\Services\MotorService;
@@ -27,11 +28,23 @@ class DashboardService
      */
     public function getDashboardData(): array
     {
-        return [
-            'customer' => $this->customerService->getCustomerStats(),
-            'motor' => $this->motorService->getMotorStats(),
-            'repair' => $this->repairService->getRepairStats(),
-            'revenue' => $this->repairService->getRevenueStats(),
-        ];
+        $result = [];
+        $result['customer'] = ServiceHelper::safeField(
+            fn() => $this->customerService->getCustomerStats(),
+            'Σφάλμα στα στατιστικά πελατών'
+        );
+        $result['motor'] = ServiceHelper::safeField(
+            fn() => $this->motorService->getMotorStats(),
+            'Σφάλμα στα στατιστικά κινητήρων'
+        );
+        $result['repair'] = ServiceHelper::safeField(
+            fn() => $this->repairService->getRepairStats(),
+            'Σφάλμα στα στατιστικά επισκευών'
+        );
+        $result['revenue'] = ServiceHelper::safeField(
+            fn() => $this->repairService->getRevenueStats(),
+            'Σφάλμα στα στατιστικά εσόδων'
+        );
+        return $result;
     }
 }

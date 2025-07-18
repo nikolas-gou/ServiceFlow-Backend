@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\MotorRepository;
+use App\Helpers\ServiceHelper;
 
 class MotorService 
 {
@@ -12,29 +13,76 @@ class MotorService
         $this->motorRepository = $motorRepository;
     }
 
-
     // get motor stats for dashboard and motor page(in future)
     public function getMotorStats(): array
     {
-        return [
-            'totalMotors' => $this->motorRepository->getTotalCountFiltered(),
-            'motorTypes' => [
-                'totalOnePhaseMotors' => $this->motorRepository->getTotalCountFiltered(['type_of_volt' => '1-phase']),
-                'totalThreePhaseMotors' => $this->motorRepository->getTotalCountFiltered(['type_of_volt' => '3-phase']),
-                'totalElMotorMotors' => $this->motorRepository->getTotalCountFiltered(['type_of_motor' => 'el_motor']),
-                'totalPumpMotors' => $this->motorRepository->getTotalCountFiltered(['type_of_motor' => 'pump']),
-                'totalGeneratorMotors' => $this->motorRepository->getTotalCountFiltered(['type_of_motor' => 'generator']),
-            ],
-            'topBrands' => $this->motorRepository->getTopBrands(5),
-            'trends' => [ 
-                'monthlyTrends' => $this->motorRepository->getMonthlyTrendsFiltered(),
-                'monthlyOnePhaseTrends' => $this->motorRepository->getMonthlyTrendsFiltered(['type_of_volt' => '1-phase']),
-                'monthlyThreePhaseTrends' => $this->motorRepository->getMonthlyTrendsFiltered(['type_of_volt' => '3-phase']),
-                'monthlyElMotorTrends' => $this->motorRepository->getMonthlyTrendsFiltered(['type_of_motor' => 'el_motor']),
-                'monthlyPumpTrends' => $this->motorRepository->getMonthlyTrendsFiltered(['type_of_motor' => 'pump']),
-                'monthlyGeneratorTrends' => $this->motorRepository->getMonthlyTrendsFiltered(['type_of_motor' => 'generator']),
-            ]
+        $result = [];
+
+        // Total motors
+        $result['totalMotors'] = ServiceHelper::safeField(
+            fn() => $this->motorRepository->getTotalCountFiltered(),
+            'Σφάλμα στο σύνολο κινητήρων'
+        );
+
+        // Motor types
+        $result['motorTypes'] = [
+            'totalOnePhaseMotors' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getTotalCountFiltered(['type_of_volt' => '1-phase']),
+                'Σφάλμα στους μονοφασικούς κινητήρες'
+            ),
+            'totalThreePhaseMotors' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getTotalCountFiltered(['type_of_volt' => '3-phase']),
+                'Σφάλμα στους τριφασικούς κινητήρες'
+            ),
+            'totalElMotorMotors' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getTotalCountFiltered(['type_of_motor' => 'el_motor']),
+                'Σφάλμα στους ηλεκτρικούς κινητήρες'
+            ),
+            'totalPumpMotors' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getTotalCountFiltered(['type_of_motor' => 'pump']),
+                'Σφάλμα στους αντλητικούς κινητήρες'
+            ),
+            'totalGeneratorMotors' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getTotalCountFiltered(['type_of_motor' => 'generator']),
+                'Σφάλμα στους γεννήτριες'
+            )
         ];
+
+        // Top brands
+        $result['topBrands'] = ServiceHelper::safeField(
+            fn() => $this->motorRepository->getTopBrands(5),
+            'Σφάλμα στα top brands'
+        );
+
+        // Trends
+        $result['trends'] = [
+            'monthlyTrends' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getMonthlyTrendsFiltered(),
+                'Σφάλμα στα μηνιαία trends'
+            ),
+            'monthlyOnePhaseTrends' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getMonthlyTrendsFiltered(['type_of_volt' => '1-phase']),
+                'Σφάλμα στα trends μονοφασικών'
+            ),
+            'monthlyThreePhaseTrends' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getMonthlyTrendsFiltered(['type_of_volt' => '3-phase']),
+                'Σφάλμα στα trends τριφασικών'
+            ),
+            'monthlyElMotorTrends' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getMonthlyTrendsFiltered(['type_of_motor' => 'el_motor']),
+                'Σφάλμα στα trends κινητήρων'
+            ),
+            'monthlyPumpTrends' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getMonthlyTrendsFiltered(['type_of_motor' => 'pump']),
+                'Σφάλμα στα trends αντλιών'
+            ),
+            'monthlyGeneratorTrends' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getMonthlyTrendsFiltered(['type_of_motor' => 'generator']),
+                'Σφάλμα στα trends γεννητριών'
+            )
+        ];
+
+        return $result;
     }
 
     /**
@@ -42,7 +90,6 @@ class MotorService
      */
     public function getConnectionism(): array
     {
-        // Αρχικοποίηση με μηδενικές τιμές
         $stats = [
             'totalSimple' => 0,
             'totalOneTimeParallel' => 0,
@@ -56,73 +103,80 @@ class MotorService
             'monthlyOtherTrends' => []
         ];
 
-        // Λήψη συνολικών counts
-        $connectionismCounts = $this->motorRepository->getConnectionismCounts();
-        
-        // Ανάθεση counts στο κατάλληλο πεδίο
-        foreach ($connectionismCounts as $row) {
-            $connectionism = $row['connectionism'];
-            $count = (int) $row['count'];
-            
-            switch ($connectionism) {
-                case 'simple':
-                    $stats['totalSimple'] = $count;
-                    break;
-                case '1-parallel':
-                    $stats['totalOneTimeParallel'] = $count;
-                    break;
-                case '2-parallel':
-                    $stats['totalTwoTimesParallel'] = $count;
-                    break;
-                case '3-parallel':
-                    $stats['totalThreeTimesParallel'] = $count;
-                    break;
-                case 'other':
-                    $stats['totalOther'] = $count;
-                    break;
+        // Connectionism counts
+        try {
+            $connectionismCounts = $this->motorRepository->getConnectionismCounts();
+            foreach ($connectionismCounts as $row) {
+                $connectionism = $row['connectionism'];
+                $count = (int) $row['count'];
+                switch ($connectionism) {
+                    case 'simple':
+                        $stats['totalSimple'] = $count;
+                        break;
+                    case '1-parallel':
+                        $stats['totalOneTimeParallel'] = $count;
+                        break;
+                    case '2-parallel':
+                        $stats['totalTwoTimesParallel'] = $count;
+                        break;
+                    case '3-parallel':
+                        $stats['totalThreeTimesParallel'] = $count;
+                        break;
+                    case 'other':
+                        $stats['totalOther'] = $count;
+                        break;
+                }
             }
+        } catch (\Throwable $e) {
+            $stats['connectionismCountsError'] = [
+                'error' => 'Σφάλμα στα connectionism counts',
+                'details' => $e->getMessage()
+            ];
         }
 
-        // Λήψη μηνιαίων δεδομένων
+        // Monthly data
         $currentYear = (int) date('Y');
         $currentMonth = (int) date('m');
         $connectionismTypes = ['simple', '1-parallel', '2-parallel', '3-parallel', 'other'];
-        
         foreach ($connectionismTypes as $type) {
-            $monthlyData = $this->motorRepository->getMonthlyConnectionismData($type, $currentYear, $currentMonth);
-            
-            // Δημιουργία array με όλους τους μήνες
-            $monthlyArray = [];
-            for ($month = 1; $month <= $currentMonth; $month++) {
-                $monthlyArray[] = 0;
+            try {
+                $monthlyData = $this->motorRepository->getMonthlyConnectionismData($type, $currentYear, $currentMonth);
+                $monthlyArray = array_fill(0, $currentMonth, 0);
+                foreach ($monthlyData as $row) {
+                    $monthIndex = (int)$row['month'] - 1;
+                    $monthlyArray[$monthIndex] = (int)$row['count'];
+                }
+                switch ($type) {
+                    case 'simple':
+                        $stats['monthlySimpleTrends'] = $monthlyArray;
+                        break;
+                    case '1-parallel':
+                        $stats['monthlyOneTimeParallelTrends'] = $monthlyArray;
+                        break;
+                    case '2-parallel':
+                        $stats['monthlyTwoTimesParallelTrends'] = $monthlyArray;
+                        break;
+                    case '3-parallel':
+                        $stats['monthlyThreeTimesParallelTrends'] = $monthlyArray;
+                        break;
+                    case 'other':
+                        $stats['monthlyOtherTrends'] = $monthlyArray;
+                        break;
+                }
+            } catch (\Throwable $e) {
+                $errorKey = match($type) {
+                    'simple' => 'monthlySimpleTrends',
+                    '1-parallel' => 'monthlyOneTimeParallelTrends',
+                    '2-parallel' => 'monthlyTwoTimesParallelTrends',
+                    '3-parallel' => 'monthlyThreeTimesParallelTrends',
+                    'other' => 'monthlyOtherTrends',
+                };
+                $stats[$errorKey] = [
+                    'error' => 'Σφάλμα στα trends ' . $type,
+                    'details' => $e->getMessage()
+                ];
             }
-            
-            // Συμπλήρωση με πραγματικά δεδομένα
-            foreach ($monthlyData as $row) {
-                $monthIndex = (int)$row['month'] - 1;
-                $monthlyArray[$monthIndex] = (int)$row['count'];
-            }
-            
-            // Ανάθεση στο κατάλληλο πεδίο
-            switch ($type) {
-                case 'simple':
-                    $stats['monthlySimpleTrends'] = $monthlyArray;
-                    break;
-                case '1-parallel':
-                    $stats['monthlyOneTimeParallelTrends'] = $monthlyArray;
-                    break;
-                case '2-parallel':
-                    $stats['monthlyTwoTimesParallelTrends'] = $monthlyArray;
-                    break;
-                case '3-parallel':
-                    $stats['monthlyThreeTimesParallelTrends'] = $monthlyArray;
-                    break;
-                case 'other':
-                    $stats['monthlyOtherTrends'] = $monthlyArray;
-                    break;
-            }
-        };
-
+        }
         return $stats;
     }
 }

@@ -30,12 +30,8 @@ class StatisticsController
      */
     public function getDashboardData(Request $request, Response $response): Response
     {
-        try {
-            $dashboardData = $this->dashboardService->getDashboardData();
-            return ResponseHelper::success($response, $dashboardData, 'Dashboard data retrieved successfully');
-        } catch (\Exception $e) {
-            return ResponseHelper::serverError($response, 'Error fetching dashboard data: ' . $e->getMessage());
-        }
+        $dashboardData = $this->dashboardService->getDashboardData();
+        return ResponseHelper::success($response, $dashboardData, 'Dashboard data retrieved successfully');
     }
 
     /**
@@ -43,12 +39,8 @@ class StatisticsController
      */
     public function getCustomerStats(Request $request, Response $response): Response
     {
-        try {
-           $customerStats = $this->customerService->getCustomerStats();
-            return ResponseHelper::success($response, $customerStats, 'Customer statistics retrieved successfully');
-        } catch (\Exception $e) {
-            return ResponseHelper::serverError($response, 'Error fetching customer statistics: ' . $e->getMessage());
-        }
+        $customerStats = $this->customerService->getCustomerStats();
+        return ResponseHelper::success($response, $customerStats, 'Customer statistics retrieved successfully');
     }
 
     /**
@@ -56,11 +48,7 @@ class StatisticsController
      */
     public function getConnectionism(Request $request, Response $response): Response
     {
-        try {
-           $connectionismStats = $this->motorService->getConnectionism();
-            return ResponseHelper::success($response, $connectionismStats, 'Connectionism statistics retrieved successfully');
-        } catch (\Exception $e) {
-            return ResponseHelper::serverError($response, 'Error fetching connectionism statistics: ' . $e->getMessage());
-        }
+        $connectionismStats = $this->motorService->getConnectionism();
+        return ResponseHelper::success($response, $connectionismStats, 'Connectionism statistics retrieved successfully');
     }
 }
