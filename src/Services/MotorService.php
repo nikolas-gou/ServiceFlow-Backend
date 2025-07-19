@@ -48,6 +48,22 @@ class MotorService
             )
         ];
 
+        // stepTypes
+        $result['stepTypes'] = [
+            'totalStandardStep' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getTotalCountFiltered(['type_of_step' => 'standard']),
+                'Σφάλμα στους standard steps'
+            ),
+            'totalHalfStep' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getTotalCountFiltered(['type_of_step' => 'half']),
+                'Σφάλμα στους half steps'
+            ),
+            'totalCombinedStep' => ServiceHelper::safeField(
+                fn() => $this->motorRepository->getTotalCountFiltered(['type_of_step' => 'combined']),
+                'Σφάλμα στους combined steps'
+            )
+        ];
+
         // Top brands
         $result['topBrands'] = ServiceHelper::safeField(
             fn() => $this->motorRepository->getTopBrands(5),
