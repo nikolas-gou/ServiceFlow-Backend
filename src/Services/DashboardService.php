@@ -24,11 +24,55 @@ class DashboardService
     }
 
     /**
+     * Επιστρέφει τα ονόματα των μηνών στα ελληνικά
+     */
+    private function getGreekMonths(): array
+    {
+        return [
+            'Ιαν',
+            'Φεβ',
+            'Μαρ',
+            'Απρ',
+            'Μάι',
+            'Ιουν',
+            'Ιουλ',
+            'Αυγ',
+            'Σεπ',
+            'Οκτ',
+            'Νοε',
+            'Δεκ',
+        ];
+    }
+
+    /**
+     * Επιστρέφει τα μηνιαία δεδομένα για charts
+     */
+    private function getMonthlyChartData(): array
+    {
+        $currentYear = (int) date('Y');
+        $currentMonth = (int) date('m');
+        
+        // Επιστρέφουμε μόνο τους μήνες μέχρι τον τρέχοντα
+        $months = array_slice($this->getGreekMonths(), 0, $currentMonth);
+        
+        return [
+            'labels' => $months,
+            'currentYear' => $currentYear,
+            'currentMonth' => $currentMonth,
+            'totalMonths' => $currentMonth
+        ];
+    }
+
+    /**
      * Comprehensive dashboard data - όλα τα στατιστικά μαζί
      */
     public function getDashboardData(): array
     {
         $result = [];
+        
+        // Προσθήκη μηνιαίων δεδομένων για charts
+        $result['chartData'] = $this->getMonthlyChartData();
+        
         $result['customer'] = ServiceHelper::safeField(
             fn() => $this->customerService->getCustomerStats(),
             'Σφάλμα στα στατιστικά πελατών'
