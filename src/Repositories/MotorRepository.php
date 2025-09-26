@@ -115,12 +115,12 @@ class MotorRepository
     {
         $motorQuery = "INSERT INTO motors (customer_id, serial_number, manufacturer, kw, hp, rpm, 
                         step, half_step, helper_step, helper_half_step, spiral, half_spiral, 
-                        helper_spiral, helper_half_spiral, connectionism, volt, poles, 
+                        helper_spiral, helper_half_spiral, connectionism, volt, amps, poles, 
                         coils_count, half_coils_count, helper_coils_count, helper_half_coils_count,
                         type_of_motor, type_of_volt, type_of_step, created_at) 
                         VALUES (:customer_id, :serial_number, :manufacturer, :kw, :hp, :rpm, 
                         :step, :half_step, :helper_step, :helper_half_step, :spiral, :half_spiral, 
-                        :helper_spiral, :helper_half_spiral, :connectionism, :volt, :poles, 
+                        :helper_spiral, :helper_half_spiral, :connectionism, :volt, :amps, :poles, 
                         :coils_count, :half_coils_count, :helper_coils_count, :helper_half_coils_count,
                         :type_of_motor, :type_of_volt, :type_of_step, :created_at)";
         
@@ -141,6 +141,7 @@ class MotorRepository
         $motorStmt->bindParam(':helper_half_spiral', $motor->helper_half_spiral);
         $motorStmt->bindParam(':connectionism', $motor->connectionism);
         $motorStmt->bindParam(':volt', $motor->volt);
+        $motorStmt->bindParam(':amps', $motor->amps);
         $motorStmt->bindParam(':poles', $motor->poles);
         $motorStmt->bindParam(':coils_count', $motor->coils_count);
         $motorStmt->bindParam(':half_coils_count', $motor->half_coils_count);
@@ -186,6 +187,7 @@ class MotorRepository
                 helper_half_spiral = :helper_half_spiral,
                 connectionism = :connectionism,
                 volt = :volt,
+                amps = :amps,
                 poles = :poles,
                 coils_count = :coils_count,
                 half_coils_count = :half_coils_count,
@@ -215,6 +217,7 @@ class MotorRepository
             $motorStmt->bindParam(':helper_half_spiral', $motor->helper_half_spiral);
             $motorStmt->bindParam(':connectionism', $motor->connectionism);
             $motorStmt->bindParam(':volt', $motor->volt);
+            $motorStmt->bindParam(':amps', $motor->amps);
             $motorStmt->bindParam(':poles', $motor->poles);
             $motorStmt->bindParam(':coils_count', $motor->coils_count);
             $motorStmt->bindParam(':half_coils_count', $motor->half_coils_count);

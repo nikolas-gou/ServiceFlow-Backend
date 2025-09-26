@@ -22,6 +22,7 @@ class Motor
     public $helper_half_spiral;
     public $connectionism;
     public $volt;
+    public $amps;
     public $poles;
     // Νέα πεδία για coils
     public $coils_count;
@@ -53,6 +54,7 @@ class Motor
         $this->helper_half_spiral = $data['helper_half_spiral'] ?? null;
         $this->connectionism = $data['connectionism'] ?? "simple";
         $this->volt = $data['volt'] ?? "380VY";
+        $this->amps = $data['amps'] ?? null;
         $this->poles = $data['poles'] ?? null;
         // Νέα coils πεδία
         $this->coils_count = $data['coils_count'] ?? 1;
@@ -86,6 +88,7 @@ class Motor
             'helper_half_spiral' => $frontendData['helperHalfSpiral'] ?? null,
             'connectionism' => $frontendData['connectionism'] ?? 'simple',
             'volt' => $frontendData['volt'] ?? '380VY',
+            'amps' => $frontendData['amps'] ?? null,
             'poles' => $frontendData['poles'] ?? '6',
             // Νέα coils πεδία
             'coils_count' => $frontendData['coilsCount'] ?? 1,
@@ -124,6 +127,7 @@ class Motor
             'helperHalfSpiral' => $this->helper_half_spiral,
             'connectionism' => $this->connectionism,
             'volt' => $this->volt,
+            'amps' => $this->amps,
             'poles' => $this->poles,
             // Νέα coils πεδία
             'coilsCount' => $this->coils_count,
@@ -165,6 +169,7 @@ class Motor
             'helper_half_spiral' => $this->helper_half_spiral,
             'connectionism' => $this->connectionism,
             'volt' => $this->volt,
+            'amps' => $this->amps,
             'poles' => $this->poles,
             // Νέα coils πεδία
             'coils_count' => $this->coils_count,
