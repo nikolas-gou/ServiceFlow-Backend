@@ -8,7 +8,7 @@ class Motor
 {
     public  $id;
     public $serial_number;
-    public $title;
+    public $description;
     public $manufacturer;
     public $kw;
     public $hp;
@@ -41,7 +41,7 @@ class Motor
     {
         $this->id = $data['id'] ?? null;
         $this->serial_number = $data['serial_number'] ?? null;
-        $this->title = $data['title'] ?? null;
+        $this->description = $data['description'] ?? null;
         $this->manufacturer = $data['manufacturer'] ?? "";
         $this->kw = $data['kw'] ?? null;
         $this->hp = $data['hp'] ?? null;
@@ -76,7 +76,7 @@ class Motor
         $dbData = [
             'id' => $frontendData['id'] ?? null,
             'serial_number' => $frontendData['serialNumber'] ?? null,
-            'title' => $frontendData['title'] ?? null,
+            'description' => $frontendData['description'] ?? null,
             'manufacturer' => $frontendData['manufacturer'] ?? '',
             'kw' => $frontendData['kw'] ?? null,
             'hp' => $frontendData['hp'] ?? null,
@@ -116,7 +116,7 @@ class Motor
         return [
             'id' => $this->id,
             'serialNumber' => $this->serial_number,
-            'title' => $this->title,
+            'description' => $this->description,
             'manufacturer' => $this->manufacturer,
             'kw' => $this->kw,
             'hp' => $this->hp,
@@ -159,7 +159,7 @@ class Motor
         return [
             'id' => $this->id,
             'serial_number' => $this->serial_number,
-            'title' => $this->title,
+            'description' => $this->description,
             'manufacturer' => $this->manufacturer,
             'kw' => $this->kw,
             'hp' => $this->hp,
