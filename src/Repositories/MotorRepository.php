@@ -113,12 +113,13 @@ class MotorRepository
 
     public function createMotor(Motor $motor, $customer_id): int
     {
-        $motorQuery = "INSERT INTO motors (customer_id, serial_number, manufacturer, kw, hp, rpm, 
+        $motorQuery = "INSERT 
+                        INTO motors (customer_id, serial_number, title, manufacturer, kw, hp, rpm, 
                         step, half_step, helper_step, helper_half_step, spiral, half_spiral, 
                         helper_spiral, helper_half_spiral, connectionism, volt, amps, poles, 
                         coils_count, half_coils_count, helper_coils_count, helper_half_coils_count,
                         type_of_motor, type_of_volt, type_of_step, created_at) 
-                        VALUES (:customer_id, :serial_number, :manufacturer, :kw, :hp, :rpm, 
+                        VALUES (:customer_id, :serial_number, :title, :manufacturer, :kw, :hp, :rpm, 
                         :step, :half_step, :helper_step, :helper_half_step, :spiral, :half_spiral, 
                         :helper_spiral, :helper_half_spiral, :connectionism, :volt, :amps, :poles, 
                         :coils_count, :half_coils_count, :helper_coils_count, :helper_half_coils_count,
@@ -127,6 +128,7 @@ class MotorRepository
         $motorStmt = $this->conn->prepare($motorQuery);
         $motorStmt->bindParam(':customer_id', $customer_id);
         $motorStmt->bindParam(':serial_number', $motor->serial_number);
+        $motorStmt->bindParam(':title', $motor->title);
         $motorStmt->bindParam(':manufacturer', $motor->manufacturer);
         $motorStmt->bindParam(':kw', $motor->kw);
         $motorStmt->bindParam(':hp', $motor->hp);
@@ -173,6 +175,7 @@ class MotorRepository
             $motorQuery = "UPDATE motors SET 
                 customer_id = :customer_id,
                 serial_number = :serial_number,
+                title = :title,
                 manufacturer = :manufacturer,
                 kw = :kw,
                 hp = :hp,
@@ -203,6 +206,7 @@ class MotorRepository
             $motorStmt->bindParam(':id', $motor->id, \PDO::PARAM_INT);
             $motorStmt->bindParam(':customer_id', $customer_id, \PDO::PARAM_INT);
             $motorStmt->bindParam(':serial_number', $motor->serial_number);
+            $motorStmt->bindParam(':title', $motor->title);
             $motorStmt->bindParam(':manufacturer', $motor->manufacturer);
             $motorStmt->bindParam(':kw', $motor->kw);
             $motorStmt->bindParam(':hp', $motor->hp);
