@@ -11,7 +11,9 @@ $is_local = ($server_name == 'localhost' ||
     strpos($server_name, 'localhost') !== false ||
     strpos($http_host, 'localhost') !== false ||
     strpos($server_name, '127.0.0.1') !== false ||
-    strpos($http_host, '127.0.0.1') !== false);
+    strpos($http_host, '127.0.0.1') !== false ||
+    strpos($server_name, '192.168.') !== false ||
+    strpos($http_host, '192.168.') !== false);
 
 // Debug line - μπορείς να το σχολιάσεις αργότερα
 // file_put_contents('debug_env.txt', "Server: {$server_name}, Host: {$http_host}, IsLocal: " . ($is_local ? 'Yes' : 'No') . "\n", FILE_APPEND);
