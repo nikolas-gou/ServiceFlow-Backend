@@ -23,7 +23,7 @@ return [
     ],
     
     'cors' => [
-        'allowed_origins' => explode(',', $_ENV['CORS_ALLOWED_ORIGINS'] ?? 'http://localhost:3000,https://motorserviceflow.vercel.app,http://192.168.2.8:3000'),
+        'allowed_origins' => explode(',', $_ENV['CORS_ALLOWED_ORIGINS'] ?? 'http://localhost:3000,https://motorserviceflow.vercel.app,http://192.168.2.8:3000,http://192.168.148.230:3000'),
         'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         'allowed_headers' => ['X-Requested-With', 'Content-Type', 'Accept', 'Origin', 'Authorization'],
         'allow_credentials' => true
