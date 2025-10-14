@@ -51,4 +51,9 @@ class ResponseHelper
     {
         return self::error($response, $message, 500);
     }
+
+    public static function badRequest(ResponseInterface $response, string $message = 'Bad request'): ResponseInterface
+    {
+        return self::error($response, $message, 400);
+    }
 }
