@@ -37,6 +37,8 @@ $containerBuilder->addDefinitions([
         ->constructor(\DI\get(\PDO::class)),
     \App\Repositories\MotorCrossSectionLinksRepository::class => \DI\create()
         ->constructor(\DI\get(\PDO::class)),
+    \App\Repositories\ImageRepository::class => \DI\create()
+        ->constructor(\DI\get(\PDO::class)),
     
     // RepairRepository with dependencies
     \App\Repositories\RepairRepository::class => \DI\create()
@@ -44,7 +46,8 @@ $containerBuilder->addDefinitions([
             \DI\get(\PDO::class),
             \DI\get(\App\Repositories\MotorRepository::class),
             \DI\get(\App\Repositories\CustomerRepository::class),
-            \DI\get(\App\Repositories\RepairFaultLinksRepository::class)
+            \DI\get(\App\Repositories\RepairFaultLinksRepository::class),
+            \DI\get(\App\Repositories\ImageRepository::class)
         ),
     
     // Services

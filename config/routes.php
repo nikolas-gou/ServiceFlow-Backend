@@ -6,6 +6,7 @@ use App\Controllers\MotorController;
 use App\Controllers\RepairController;
 use App\Controllers\CommonFaultController;
 use App\Controllers\StatisticsController;
+use App\Controllers\ImageController;
 
 $app->options('/{routes:.+}', function ($request, $response) {
     return $response;
@@ -32,6 +33,11 @@ $app->group('/api', function (RouteCollectorProxy $group) {
 
     // Common Faults
     $group->get('/common_faults', [CommonFaultController::class, 'getAll']);
+
+    // Images
+    $group->post('/images/upload/{repairId}', [ImageController::class, 'uploadImages']);
+    $group->get('/images/repair/{repairId}', [ImageController::class, 'getImagesForRepair']);
+    $group->get('/images/serve/{id}', [ImageController::class, 'serveImage']);
 
     // Statistics
     $group->group('/statistics', function (RouteCollectorProxy $statsGroup) {
