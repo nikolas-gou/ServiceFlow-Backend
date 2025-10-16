@@ -1,0 +1,25 @@
+# Ignore uploaded files
+public/uploads/
+
+# Logs
+logs/
+*.log
+
+# Dependencies
+vendor/
+node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
