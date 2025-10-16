@@ -12,17 +12,20 @@ class RepairRepository
     private $motorRepository;
     private $customerRepository;
     private $repairFaultLinksRepository;
+    private $imageRepository;
 
     public function __construct(
         PDO $pdo,
         MotorRepository $motorRepository = null,
         CustomerRepository $customerRepository = null,
-        RepairFaultLinksRepository $repairFaultLinksRepository = null
+        RepairFaultLinksRepository $repairFaultLinksRepository = null,
+        ImageRepository $imageRepository = null
     ) {
         $this->conn = $pdo;
         $this->motorRepository = $motorRepository;
         $this->customerRepository = $customerRepository;
         $this->repairFaultLinksRepository = $repairFaultLinksRepository;
+        $this->imageRepository = $imageRepository;
     }
 
     public function getAll(bool $toFrontendFormat = true)
@@ -54,6 +57,12 @@ class RepairRepository
             if ($this->repairFaultLinksRepository) {
                 $repair->repairFaultLinks = $this->repairFaultLinksRepository->getByRepairId($repair->id);
             }
+
+            // Φέρνουμε τα images
+            if ($this->imageRepository) {
+                $repair->images = $this->imageRepository->getByRepairId($repair->id);
+            }
+
 
             // Πάντα επιστρέφουμε formatted data για το frontend
             $repairs[] = $repair->toFrontendFormat();
@@ -105,6 +114,16 @@ class RepairRepository
                 } catch (\Exception $e) {
                     error_log("Error fetching repair fault links for repair {$id}: " . $e->getMessage());
                     $repair->repairFaultLinks = [];
+                }
+            }
+
+            // Φέρνουμε τα images
+            if ($this->imageRepository) {
+                try {
+                    $repair->images = $this->imageRepository->getByRepairId($id);
+                } catch (\Exception $e) {
+                    error_log("Error fetching images for repair {$id}: " . $e->getMessage());
+                    $repair->images = [];
                 }
             }
 

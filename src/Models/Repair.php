@@ -16,6 +16,7 @@ class Repair
     public $customer;
     public $motor;
     public $repairFaultLinks = [];
+    public $images = [];
 
     public function __construct(array $data = [])
     {
@@ -29,6 +30,7 @@ class Repair
         $this->cost = $data['cost'] ?? null;
         $this->estimated_is_complete = $data['estimated_is_complete'] ?? '';
         $this->repairFaultLinks = $data['repair_fault_links'] ?? [];
+        $this->images = $data['images'] ?? [];
         $this->customer = $data['customer'] ?? null;
         $this->motor = $data['motor'] ?? null;
     }
@@ -50,6 +52,10 @@ class Repair
             'repair_fault_links' => array_map(
                 fn($item) => RepairFaultLinks::fromFrontendFormat($item),
                 $frontendData['repairFaultLinks'] ?? []
+            ),
+            'images' => array_map(
+                fn($item) => Image::fromFrontendFormat($item),
+                $frontendData['images'] ?? []
             ),
             'customer' => $frontendData['customer'] ? Customer::fromFrontendFormat($frontendData['customer']) : null,
             'motor' => $frontendData['motor'] ? Motor::fromFrontendFormat($frontendData['motor']) : null
@@ -80,7 +86,12 @@ class Repair
                 return is_object($link) && method_exists($link, 'toFrontendFormat')
                     ? $link->toFrontendFormat()
                     : $link;
-            }, $this->repairFaultLinks)
+            }, $this->repairFaultLinks),
+            'images' => array_map(function ($image) {
+                return is_object($image) && method_exists($image, 'toFrontendFormat')
+                    ? $image->toFrontendFormat()
+                    : $image;
+            }, $this->images)
         ];
     }
 
@@ -100,7 +111,10 @@ class Repair
             'motor' => $this->motor ? $this->motor->toArray() : null,
             'repair_fault_links' => array_map(function ($link) {
                 return $link->toArray();
-            }, $this->repairFaultLinks)
+            }, $this->repairFaultLinks),
+            'images' => array_map(function ($image) {
+                return $image->toArray();
+            }, $this->images)
         ];
     }
 }
