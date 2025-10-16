@@ -47,7 +47,7 @@ class RepairController
         try {
             $data = json_decode($request->getBody()->getContents(), true);
 
-            if (!isset($data['repair']) || !isset($data['customer']) || !isset($data['motor'])) {
+            if (!isset($data['repair']) || !isset($data['repair']['customer']) || !isset($data['repair']['motor'])) {
                 return ResponseHelper::validationError($response, ['Λείπουν απαραίτητα δεδομένα (repair, customer ή motor)']);
             }
 
