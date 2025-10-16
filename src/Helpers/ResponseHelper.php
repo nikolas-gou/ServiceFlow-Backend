@@ -56,4 +56,21 @@ class ResponseHelper
     {
         return self::error($response, $message, 400);
     }
+
+    public static function binary(ResponseInterface $response, string $data, string $contentType, int $statusCode = 200, array $headers = []): ResponseInterface
+    {
+        if ($headers) {
+            foreach ($headers as $key => $value) {
+                $response = $response->withHeader($key, $value);
+            }
+        }
+        
+        // Προσθέτουμε Content-Type μόνο αν δεν έχει ήδη δοθεί
+        if (!$headers || !isset($headers['Content-Type'])) {
+            $response = $response->withHeader('Content-Type', $contentType);
+        }
+
+        $response->getBody()->write($data);
+        return $response->withStatus($statusCode);
+    }
 }
