@@ -117,4 +117,19 @@ class ImageController
             return ResponseHelper::serverError($response, 'Σφάλμα κατά τη λήψη της εικόνας' . $e->getMessage());
         }
     }
+
+    public function deleteImages(Request $request, Response $response): Response
+    {
+        try {
+            $filesToDelete = json_decode($request->getBody()->getContents(), true);
+            
+            foreach ($filesToDelete as $fileToDelete) {
+                $this->imageRepository->deleteImage($fileToDelete);
+            }
+
+            return ResponseHelper::success($response, null, 'Εικόνες διαγράφηκαν επιτυχώς');
+        } catch (\Exception $e) {
+            return ResponseHelper::serverError($response, 'Σφάλμα κατά τη διαγραφή των εικόνων' . $e->getMessage());
+        }
+    }
 }

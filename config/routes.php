@@ -38,6 +38,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     $group->post('/images/upload/{repairId}', [ImageController::class, 'uploadImages']);
     $group->get('/images/repair/{repairId}', [ImageController::class, 'getImagesForRepair']);
     $group->get('/images/serve/{id}', [ImageController::class, 'serveImage']);
+    $group->delete('/images/delete', [ImageController::class, 'deleteImages']);
 
     // Statistics
     $group->group('/statistics', function (RouteCollectorProxy $statsGroup) {
