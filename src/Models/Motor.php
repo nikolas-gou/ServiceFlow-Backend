@@ -54,7 +54,7 @@ class Motor
         $this->half_spiral = $data['half_spiral'] ?? null;
         $this->helper_spiral = $data['helper_spiral'] ?? null;
         $this->helper_half_spiral = $data['helper_half_spiral'] ?? null;
-        $this->connectionism = $data['connectionism'] ?? "simple";
+        $this->connectionism = $data['connectionism'] ?? "other";
         $this->volt = $data['volt'] ?? "380VY";
         $this->amps = $data['amps'] ?? null;
         $this->poles = $data['poles'] ?? null;
@@ -89,7 +89,7 @@ class Motor
             'half_spiral' => $frontendData['halfSpiral'] ?? null,
             'helper_spiral' => $frontendData['helperSpiral'] ?? null,
             'helper_half_spiral' => $frontendData['helperHalfSpiral'] ?? null,
-            'connectionism' => $frontendData['connectionism'] ?? 'simple',
+            'connectionism' => $frontendData['connectionism'] ?? 'other',
             'volt' => $frontendData['volt'] ?? '380VY',
             'amps' => $frontendData['amps'] ?? null,
             'poles' => $frontendData['poles'] ?? '6',
