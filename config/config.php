@@ -22,13 +22,13 @@ $is_local = ($server_name == 'localhost' ||
 $config = [
     'db' => [
         'host' => $is_local ? '127.0.0.1' : 'sql112.infinityfree.com',
-        'user' => $is_local ? 'root' : 'if0_38454359',
-        'pass' => $is_local ? '' : 'YTqJQsmLhkO6sE',
-        'name' => $is_local ? 'motor_service' : 'if0_38454359_motor_service',
+        'user' => $is_local ? 'root' : 'if0_40206837',
+        'pass' => $is_local ? '' : 'jpABxoNxHz9A',
+        'name' => $is_local ? 'motor_service' : 'if0_40206837_motor_service',
         'port' => $is_local ? 3306 : 3306
     ],
     'displayErrorDetails' => $is_local,
-    'base_url' => $is_local ? 'http://localhost:3000' : 'serviceflow.infinityfreeapp.com/ServiceFlow-Backend'
+    'base_url' => $is_local ? 'http://localhost:3000' : 'https://https://serviceflow.42web.io/api'
 ];
 
 return $config;
