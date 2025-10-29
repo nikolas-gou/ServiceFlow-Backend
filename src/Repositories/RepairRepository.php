@@ -71,6 +71,156 @@ class RepairRepository
         return $repairs;
     }
 
+    /**
+     * Get paginated repairs with filters
+     * 
+     * @param array $params Pagination and filter parameters
+     * @return array Returns data and pagination metadata
+     */
+    public function getPaginated(array $params = [])
+    {
+        // Default values
+        $page = isset($params['page']) ? max(1, (int)$params['page']) : 1;
+        $perPage = isset($params['perPage']) ? max(1, min(100, (int)$params['perPage'])) : 20;
+        $offset = ($page - 1) * $perPage;
+
+        // Filters - Search(by name, kw, hp, S/N), Manufacturer, VoltType, KwMin, KwMax
+        $search = $params['search'] ?? null;
+        $manufacturer = $params['manufacturer'] ?? null;
+        $voltType = $params['voltType'] ?? null;
+        $kwMin = isset($params['kwMin']) ? (float)$params['kwMin'] : null;
+        $kwMax = isset($params['kwMax']) ? (float)$params['kwMax'] : null;
+
+        // Sorting
+        $sortBy = $params['sortBy'] ?? 'is_arrived';
+        $sortOrder = strtoupper($params['sortOrder'] ?? 'DESC');
+        $sortOrder = in_array($sortOrder, ['ASC', 'DESC']) ? $sortOrder : 'DESC';
+
+        // Build WHERE clause
+        $where = ["r.deleted_at IS NULL"];
+        $bindings = [];
+
+        // Search filter (searches across multiple fields)
+        if ($search && !empty($search) && is_string($search)) {
+            $searchValue = "%{$search}%";
+            $where[] = "(m.manufacturer LIKE :search1 OR m.serial_number LIKE :search2 OR 
+                        c.name LIKE :search3 OR m.kw LIKE :search4 OR m.hp LIKE :search5)";
+            $bindings[':search1'] = $searchValue;
+            $bindings[':search2'] = $searchValue;
+            $bindings[':search3'] = $searchValue;
+            $bindings[':search4'] = $searchValue;
+            $bindings[':search5'] = $searchValue;
+        }
+
+        // Manufacturer filter
+        if ($manufacturer && !empty($manufacturer) && is_string($manufacturer)) {
+            $where[] = "m.manufacturer = :manufacturer";
+            $bindings[':manufacturer'] = $manufacturer;
+        }
+
+        // Volt type filter
+        if ($voltType !== null && $voltType !== '' && (is_string($voltType) || is_numeric($voltType))) {
+            $where[] = "m.volt = :voltType";
+            $bindings[':voltType'] = $voltType;
+        }
+
+        // kW range filters
+        if ($kwMin !== null && is_numeric($kwMin)) {
+            $where[] = "m.kw >= :kwMin";
+            $bindings[':kwMin'] = (float)$kwMin;
+        }
+        if ($kwMax !== null && is_numeric($kwMax)) {
+            $where[] = "m.kw <= :kwMax";
+            $bindings[':kwMax'] = (float)$kwMax;
+        }
+
+        $whereClause = implode(' AND ', $where);
+
+        // Count total records (for pagination metadata)
+        $countQuery = "SELECT COUNT(DISTINCT r.id) as total
+                      FROM repairs r
+                      LEFT JOIN motors m ON r.motor_id = m.id
+                      LEFT JOIN customers c ON r.customer_id = c.id
+                      WHERE {$whereClause}";
+
+        $countStmt = $this->conn->prepare($countQuery);
+        foreach ($bindings as $key => $value) {
+            $countStmt->bindValue($key, $value);
+        }
+        
+        $countStmt->execute();
+        $result = $countStmt->fetch(\PDO::FETCH_ASSOC);
+        $totalItems = $result ? (int)$result['total'] : 0;
+
+        // Fetch paginated data
+        // Validate sortBy to prevent SQL injection
+        $allowedSortColumns = ['created_at', 'id', 'repair_status', 'cost', 'is_arrived'];
+        $sortByColumn = in_array($sortBy, $allowedSortColumns) ? $sortBy : 'is_arrived';
+        
+        $dataQuery = "SELECT r.* FROM repairs r
+                     LEFT JOIN motors m ON r.motor_id = m.id
+                     LEFT JOIN customers c ON r.customer_id = c.id
+                     WHERE {$whereClause}
+                     ORDER BY r.{$sortByColumn} {$sortOrder}
+                     LIMIT :limit OFFSET :offset";
+
+        $dataStmt = $this->conn->prepare($dataQuery);
+        foreach ($bindings as $key => $value) {
+            $dataStmt->bindValue($key, $value);
+        }
+        $dataStmt->bindValue(':limit', $perPage, \PDO::PARAM_INT);
+        $dataStmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $dataStmt->execute();
+        $repairsData = $dataStmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Process repairs (fetch related data)
+        $repairs = [];
+        foreach ($repairsData as $repairData) {
+            $repair = new Repair($repairData);
+            
+            // Φέρνουμε το αντίστοιχο Motor
+            if (!empty($repair->motor_id) && $this->motorRepository) {
+                $repair->motor = $this->motorRepository->getMotorById($repair->motor_id);
+            }
+
+            // Φέρνουμε το αντίστοιχο Customer
+            if (!empty($repair->customer_id) && $this->customerRepository) {
+                $repair->customer = $this->customerRepository->getCustomerById($repair->customer_id);
+            }
+
+            // Φέρνουμε τα repair fault links
+            if ($this->repairFaultLinksRepository) {
+                $repair->repairFaultLinks = $this->repairFaultLinksRepository->getByRepairId($repair->id);
+            }
+
+            // Φέρνουμε τα images
+            if ($this->imageRepository) {
+                $repair->images = $this->imageRepository->getByRepairId($repair->id);
+            }
+
+            $repairs[] = $repair->toFrontendFormat();
+        }
+
+        // Calculate pagination metadata
+        $totalPages = (int)ceil($totalItems / $perPage);
+        $from = $totalItems > 0 ? $offset + 1 : 0;
+        $to = min($offset + $perPage, $totalItems);
+
+        return [
+            'data' => $repairs,
+            'pagination' => [
+                'currentPage' => $page,
+                'perPage' => $perPage,
+                'totalItems' => $totalItems,
+                'totalPages' => $totalPages,
+                'from' => $from,
+                'to' => $to,
+                'hasNextPage' => $page < $totalPages,
+                'hasPrevPage' => $page > 1
+            ]
+        ];
+    }
+
     public function getRepairById($id)
     {
         try {

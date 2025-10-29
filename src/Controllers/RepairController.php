@@ -20,8 +20,20 @@ class RepairController
     public function getAll(Request $request, Response $response): Response
     {
         try {
-            $repairs = $this->repairRepository->getAll();
-            return ResponseHelper::success($response, $repairs, 'Repairs retrieved successfully');
+            $queryParams = $request->getQueryParams();
+            
+            // Check if pagination is requested
+            $isPaginated = isset($queryParams['page']) || isset($queryParams['perPage']);
+            
+            if ($isPaginated) {
+                // Use paginated method
+                $result = $this->repairRepository->getPaginated($queryParams);
+                return ResponseHelper::success($response, $result['data'], 'Repairs retrieved successfully', 200, $result['pagination']);
+            } else {
+                // Use original method (backwards compatible)
+                $repairs = $this->repairRepository->getAll();
+                return ResponseHelper::success($response, $repairs, 'Repairs retrieved successfully');
+            }
         } catch (\Exception $e) {
             return ResponseHelper::serverError($response, 'Failed to retrieve repairs: ' . $e->getMessage());
         }

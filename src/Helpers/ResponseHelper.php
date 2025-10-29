@@ -6,13 +6,18 @@ use Psr\Http\Message\ResponseInterface;
 
 class ResponseHelper
 {
-    public static function success(ResponseInterface $response, $data = null, string $message = 'Success', int $statusCode = 200): ResponseInterface
+    public static function success(ResponseInterface $response, $data = null, string $message = 'Success', int $statusCode = 200, $pagination = null): ResponseInterface
     {
         $payload = [
             'status' => 'success',
             'message' => $message,
             'data' => $data
         ];
+
+        // Add pagination metadata if provided
+        if ($pagination !== null) {
+            $payload['pagination'] = $pagination;
+        }
 
         $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
         return $response
