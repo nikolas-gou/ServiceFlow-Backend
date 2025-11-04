@@ -84,12 +84,13 @@ class RepairRepository
         $perPage = isset($params['perPage']) ? max(1, min(100, (int)$params['perPage'])) : 20;
         $offset = ($page - 1) * $perPage;
 
-        // Filters - Search(by name, kw, hp, S/N), Manufacturer, VoltType, KwMin, KwMax
+        // Filters - Search(by name, kw, hp, S/N), Manufacturer, VoltType, KwMin, KwMax, RPM
         $search = $params['search'] ?? null;
         $manufacturer = $params['manufacturer'] ?? null;
         $voltType = $params['voltType'] ?? null;
         $kwMin = isset($params['kwMin']) ? (float)$params['kwMin'] : null;
         $kwMax = isset($params['kwMax']) ? (float)$params['kwMax'] : null;
+        $rpm = $params['rpm'] ?? null;
 
         // Sorting
         $sortBy = $params['sortBy'] ?? 'is_arrived';
@@ -132,6 +133,12 @@ class RepairRepository
         if ($kwMax !== null && is_numeric($kwMax)) {
             $where[] = "m.kw <= :kwMax";
             $bindings[':kwMax'] = (float)$kwMax;
+        }
+
+        // RPM filter
+        if ($rpm !== null && $rpm !== '' && (is_string($rpm) || is_numeric($rpm))) {
+            $where[] = "m.rpm = :rpm";
+            $bindings[':rpm'] = $rpm;
         }
 
         $whereClause = implode(' AND ', $where);
