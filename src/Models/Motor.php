@@ -42,7 +42,7 @@ class Motor
         $this->id = $data['id'] ?? null;
         $this->serial_number = $data['serial_number'] ?? null;
         $this->description = $data['description'] ?? null;
-        $this->manufacturer = $data['manufacturer'] ?? "";
+        $this->manufacturer = $data['manufacturer'] ?? "-";
         $this->kw = $data['kw'] ?? null;
         $this->hp = $data['hp'] ?? null;
         $this->rpm = $data['rpm'] ?? null;
@@ -77,7 +77,7 @@ class Motor
             'id' => $frontendData['id'] ?? null,
             'serial_number' => $frontendData['serialNumber'] ?? null,
             'description' => $frontendData['description'] ?? null,
-            'manufacturer' => $frontendData['manufacturer'] ?? '',
+            'manufacturer' => $frontendData['manufacturer'] ?? '-',
             'kw' => $frontendData['kw'] ?? null,
             'hp' => $frontendData['hp'] ?? null,
             'rpm' => $frontendData['rpm'] ?? '1490',
