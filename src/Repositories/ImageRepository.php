@@ -8,18 +8,23 @@ use PDO;
 class ImageRepository
 {
     private $conn;
-    private $uploadPath = 'uploads/repairs/';
+    private $uploadPath;
     private $allowedTypes = [
         'image/jpeg',
+        'image/jpg',
         'image/png',
         'image/gif',
-        'image/webp'
+        'image/webp',
+        'image/heic',
+        'image/heif'
     ];
     private $maxFileSize = 10485760; // 10MB σε bytes
 
     public function __construct(PDO $pdo)
     {
         $this->conn = $pdo;
+        // Ορισμός του upload path relative στο public directory
+        $this->uploadPath = __DIR__ . '/../../public/uploads/repairs/';
     }
 
     /**
@@ -48,6 +53,29 @@ class ImageRepository
                 // Έλεγχος τύπου αρχείου
                 $finfo = new \finfo(FILEINFO_MIME_TYPE);
                 $mimeType = $finfo->file($file['tmp_name']);
+                
+                // Fallback: Έλεγχος από το όνομα αρχείου αν το MIME type δεν είναι αξιόπιστο
+                $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                $extensionMap = [
+                    'jpg' => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'png' => 'image/png',
+                    'gif' => 'image/gif',
+                    'webp' => 'image/webp',
+                    'heic' => 'image/heic',
+                    'heif' => 'image/heif'
+                ];
+                
+                // Αν το MIME type δεν είναι στο allowed list, δοκίμασε από extension
+                if (!in_array($mimeType, $this->allowedTypes)) {
+                    if (isset($extensionMap[$extension])) {
+                        $mimeType = $extensionMap[$extension];
+                    } else {
+                        throw new \RuntimeException("Μη αποδεκτός τύπος αρχείου: {$mimeType} (extension: {$extension})");
+                    }
+                }
+                
+                // Διπλός έλεγχος μετά το fallback
                 if (!in_array($mimeType, $this->allowedTypes)) {
                     throw new \RuntimeException("Μη αποδεκτός τύπος αρχείου: {$mimeType}");
                 }
@@ -71,7 +99,7 @@ class ImageRepository
                     throw new \RuntimeException("Αποτυχία μεταφοράς αρχείου");
                 }
 
-                // Αποθήκευση στη βάση
+                // Αποθήκευση στη βάση (relative path για να χρησιμοποιείται από το serveImage)
                 $relativePath = 'uploads/repairs/' . $repair_id . '/' . $filename;
                 $image = new Image([
                     'repair_id' => $repair_id,
@@ -179,7 +207,8 @@ class ImageRepository
             }
 
             // Διαγραφή του αρχείου
-            $fullPath = $this->uploadPath . '../' . $imageData['path'];
+            $basePath = __DIR__ . '/../../public/';
+            $fullPath = $basePath . $imageData['path'];
             if (file_exists($fullPath)) {
                 if (!unlink($fullPath)) {
                     throw new \RuntimeException("Αποτυχία διαγραφής αρχείου");
@@ -206,9 +235,12 @@ class ImageRepository
     {
         $map = [
             'image/jpeg' => 'jpg',
+            'image/jpg' => 'jpg',
             'image/png' => 'png',
             'image/gif' => 'gif',
-            'image/webp' => 'webp'
+            'image/webp' => 'webp',
+            'image/heic' => 'heic',
+            'image/heif' => 'heif'
         ];
         return $map[$mimeType] ?? 'jpg';
     }

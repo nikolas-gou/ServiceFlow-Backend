@@ -22,33 +22,54 @@ class ImageController
         try {
             $repairId = (int)$args['repairId'];
 
-            if (!isset($_FILES['files'])) {
+            // Έλεγχος για files[] (με brackets) ή files (χωρίς brackets)
+            // Σημείωση: όταν στέλνεις files[] από FormData, το PHP το αποθηκεύει ως 'files'
+            $filesArray = null;
+            if (isset($_FILES['files'])) {
+                $filesArray = $_FILES['files'];
+            } else {
+                // Δοκίμασε όλα τα keys του $_FILES
+                foreach ($_FILES as $key => $value) {
+                    if (strpos($key, 'file') !== false) {
+                        $filesArray = $value;
+                        break;
+                    }
+                }
+            }
+
+            if (!$filesArray) {
                 return ResponseHelper::badRequest($response, 'Δεν βρέθηκαν αρχεία για upload');
             }
 
             // Προετοιμασία των files
             $files = [];
-            if (is_array($_FILES['files']['tmp_name'])) {
-                // Πολλαπλά αρχεία
-                foreach ($_FILES['files']['tmp_name'] as $key => $tmp_name) {
-                    if ($_FILES['files']['error'][$key] === UPLOAD_ERR_OK) {
-                        $files[] = [
-                            'name' => $_FILES['files']['name'][$key],
-                            'type' => $_FILES['files']['type'][$key],
-                            'tmp_name' => $tmp_name,
-                            'error' => $_FILES['files']['error'][$key],
-                            'size' => $_FILES['files']['size'][$key]
-                        ];
+            if (is_array($filesArray['tmp_name'])) {
+                // Πολλαπλά αρχεία (files[] ή files)
+                foreach ($filesArray['tmp_name'] as $key => $tmp_name) {
+                    $errorCode = is_array($filesArray['error']) ? $filesArray['error'][$key] : $filesArray['error'];
+                    
+                    // Έλεγχος για upload errors
+                    if ($errorCode !== UPLOAD_ERR_OK) {
+                        // Skip this file - error will be handled by validation
+                        continue;
                     }
+                    
+                    $files[] = [
+                        'name' => is_array($filesArray['name']) ? $filesArray['name'][$key] : $filesArray['name'],
+                        'type' => is_array($filesArray['type']) ? $filesArray['type'][$key] : $filesArray['type'],
+                        'tmp_name' => $tmp_name,
+                        'error' => $errorCode,
+                        'size' => is_array($filesArray['size']) ? $filesArray['size'][$key] : $filesArray['size']
+                    ];
                 }
-            } else if ($_FILES['files']['error'] === UPLOAD_ERR_OK) {
+            } else if ($filesArray['error'] === UPLOAD_ERR_OK) {
                 // Μονό αρχείο
-                $files[] = $_FILES['files'];
+                $files[] = $filesArray;
             }
 
             // Στην περιπτωση που υπαρχουν λαθη κατα το ανεβασμα
             if (empty($files)) {
-                return ResponseHelper::validationError($response, ['Δεν βρέθηκαν έγκυρα αρχεία για upload']);
+                return ResponseHelper::validationError($response, ['Δεν βρέθηκαν έγκυρα αρχεία για upload. Ελέγξτε το μέγεθος των αρχείων και τον τύπο τους.']);
             }
 
             // Upload των εικόνων
@@ -56,7 +77,8 @@ class ImageController
 
             return ResponseHelper::success($response, $uploadedImages, 'Εικόνες ανεβασμένες επιτυχώς', 201);
         } catch (\Exception $e) {
-            return ResponseHelper::serverError($response, 'Σφάλμα κατά το ανέβασμα των φωτογραφιών' . $e->getMessage());
+            error_log("Image upload error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            return ResponseHelper::serverError($response, 'Σφάλμα κατά το ανέβασμα των φωτογραφιών: ' . $e->getMessage());
         }
     }
 
