@@ -45,4 +45,19 @@ class MotorCrossSectionLinksRepository
         $motorCrossSectionLink = new MotorCrossSectionLinks($motorCrossSectionLinksData);
         return $motorCrossSectionLink->toFrontendFormat();
     }
+
+    public function getSuggested(): array {
+        $query = "
+            SELECT DISTINCT cross_section
+            FROM motor_cross_section_links 
+            WHERE cross_section IS NOT NULL
+            AND cross_section != ''
+            ORDER BY CAST(SUBSTRING_INDEX(cross_section, '/', 1) AS DECIMAL(10,4))
+        ";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $cross_sections = $stmt->fetchAll(\PDO::FETCH_COLUMN, 0);
+        
+        return $cross_sections;
+    }
 }
