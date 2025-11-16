@@ -7,6 +7,7 @@ use App\Controllers\RepairController;
 use App\Controllers\CommonFaultController;
 use App\Controllers\StatisticsController;
 use App\Controllers\ImageController;
+use App\Controllers\SuggestedController;
 
 $app->options('/{routes:.+}', function ($request, $response) {
     return $response;
@@ -21,7 +22,6 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     // Motors
     $group->get('/motors', [MotorController::class, 'getAll']);
     $group->post('/motors', [MotorController::class, 'createMotor']);
-    $group->get('/motors/brands', [MotorController::class, 'getAllBrands']);
     $group->get('/motors/{id}', [MotorController::class, 'getMotorById']);
 
     // Repairs
@@ -45,5 +45,10 @@ $app->group('/api', function (RouteCollectorProxy $group) {
         $statsGroup->get('/dashboard', [StatisticsController::class, 'getDashboardData']);
         $statsGroup->get('/customers', [StatisticsController::class, 'getCustomerStats']);
         $statsGroup->get('/connectionism', [StatisticsController::class, 'getConnectionism']);
+    });
+
+    // Statistics
+    $group->group('/suggested', function (RouteCollectorProxy $suggestedGroup) {
+        $suggestedGroup->get('/form-values', [SuggestedController::class, 'getSuggestedData']);
     });
 });
