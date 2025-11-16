@@ -26,44 +26,6 @@ class MotorController
         }
     }
 
-    public function createMotor(Request $request, Response $response): Response
-    {
-        try {
-            $data = json_decode($request->getBody()->getContents(), true);
-            
-            if (!$data) {
-                return ResponseHelper::validationError($response, ['Invalid JSON data']);
-            }
-            
-            $motor = new \App\Models\Motor($data);
-            
-            if (!$motor->isValid()) {
-                return ResponseHelper::validationError($response, ['Motor data is invalid']);
-            }
-            
-            $motorId = $this->motorRepository->createMotor($motor);
-            
-            if ($motorId) {
-                $motor->id = $motorId;
-                return ResponseHelper::success($response, $motor, 'Motor created successfully', 201);
-            }
-            
-            return ResponseHelper::serverError($response, 'Failed to create motor');
-        } catch (\Exception $e) {
-            return ResponseHelper::serverError($response, 'Failed to create motor: ' . $e->getMessage());
-        }
-    }
-
-    public function getAllBrands(Request $request, Response $response): Response
-    {
-        try {
-            $brands = $this->motorRepository->getAllBrands();
-            return ResponseHelper::success($response, $brands, 'Brands retrieved successfully');
-        } catch (\Exception $e) {
-            return ResponseHelper::serverError($response, 'Failed to retrieve brands: ' . $e->getMessage());
-        }
-    }
-
     public function getMotorById(Request $request, Response $response, $args): Response
     {
         try {
