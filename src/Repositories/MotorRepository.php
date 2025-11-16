@@ -66,20 +66,6 @@ class MotorRepository
         return $motor->toFrontendFormat();
     }
 
-    public function getAllBrands(): array
-    {
-        $query = "SELECT DISTINCT m.manufacturer 
-                  FROM motors m 
-                  INNER JOIN repairs r ON m.id = r.motor_id  
-                  WHERE r.deleted_at IS NULL 
-                  AND m.manufacturer IS NOT NULL 
-                  AND m.manufacturer != '' 
-                  ORDER BY m.manufacturer";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_COLUMN);
-    }
-
     public function getTopBrands(int $limit = 5): array
     {
         $stmt = $this->conn->prepare("
@@ -364,5 +350,49 @@ class MotorRepository
         ");
         $stmt->execute([$connectionismType, $year, $month]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /** Επιστρέφει τα προτεινόμενα βήματα, που εχουν καταχωρηθεί(χωρις duplicates) */
+    public function getSuggestedSteps(): array
+    {
+        $stmt = $this->conn->prepare("
+            SELECT DISTINCT step 
+            FROM motors
+            WHERE step IS NOT NULL
+            ORDER BY step
+        ");
+
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_COLUMN, 0);
+    }
+
+    public function getSuggestedManufacturers(): array
+    {
+        $query = "SELECT DISTINCT m.manufacturer 
+                  FROM motors m 
+                  INNER JOIN repairs r ON m.id = r.motor_id  
+                  WHERE r.deleted_at IS NULL 
+                  AND m.manufacturer IS NOT NULL 
+                  AND m.manufacturer != '' 
+                  ORDER BY m.manufacturer";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_COLUMN);
+    }
+
+    public function getSuggestedDescriptions(): array
+    {
+        $query = "
+            SELECT DISTINCT m.description
+            FROM motors m
+            INNER JOIN repairs r ON m.id = r.motor_id  
+            WHERE r.deleted_at IS NULL 
+            AND m.description IS NOT NULL 
+            AND m.description != '' 
+            ORDER BY m.description
+        ";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_COLUMN);
     }
 }
