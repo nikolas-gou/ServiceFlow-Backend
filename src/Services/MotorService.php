@@ -3,14 +3,20 @@
 namespace App\Services;
 
 use App\Repositories\MotorRepository;
+use App\Repositories\MotorCrossSectionLinksRepository;
 use App\Helpers\ServiceHelper;
 
 class MotorService 
 {
-    private $motorRepository;
+    private MotorRepository $motorRepository;
+    private MotorCrossSectionLinksRepository $motorCrossSectionLinksRepository;
 
-    public function __construct(MotorRepository $motorRepository) {
+    public function __construct(
+        MotorRepository $motorRepository, 
+        MotorCrossSectionLinksRepository $motorCrossSectionLinksRepository
+    ) {
         $this->motorRepository = $motorRepository;
+        $this->motorCrossSectionLinksRepository = $motorCrossSectionLinksRepository;
     }
 
     // get motor stats for dashboard and motor page(in future)
@@ -195,4 +201,27 @@ class MotorService
         }
         return $stats;
     }
+
+    public function getSuggestedData(): array
+    {
+        return [
+            'crossSection' => ServiceHelper::formatSuggestedList(
+                fn() => $this->motorCrossSectionLinksRepository->getSuggested(),
+                'Αποτυχία ανάκτησης προτεινόμενων διατομών'
+            ),
+            'step' => ServiceHelper::formatSuggestedList(
+                fn() => $this->motorRepository->getSuggestedSteps(),
+                'Αποτυχία ανάκτησης προτεινόμενων βημάτων'
+            ),
+            'manufacturer' => ServiceHelper::formatSuggestedList(
+                fn() => $this->motorRepository->getSuggestedManufacturers(),
+                'Αποτυχία ανάκτησης προτεινόμενων μαρκών'
+            ),
+            'description' => ServiceHelper::formatSuggestedList(
+                fn() => $this->motorRepository->getSuggestedDescriptions(),
+                'Αποτυχία ανάκτησης προτεινόμενων περιγραφών κινητήρων'
+            ),
+        ];
+    }
+
 }

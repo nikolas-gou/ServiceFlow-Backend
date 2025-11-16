@@ -7,7 +7,7 @@ use App\Helpers\ServiceHelper;
 
 class CustomerService
 {
-    private $customerRepository;
+    private CustomerRepository $customerRepository;
 
     public function __construct(
         CustomerRepository $customerRepository,
@@ -60,6 +60,15 @@ class CustomerService
             'Σφάλμα στους top πελάτες'
         );
     
+        return $result;
+    }
+
+    public function getSuggestedData(): array
+    {
+        $result = ServiceHelper::formatSuggestedList(
+            fn() => $this->customerRepository->getAll(),
+            'Αποτυχία ανάκτησης προτεινόμενων πελατών'
+        );
         return $result;
     }
 }

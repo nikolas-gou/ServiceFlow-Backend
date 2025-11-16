@@ -15,4 +15,31 @@ class ServiceHelper
             ];
         }
     }
+
+    public static function formatSuggestedList(callable $fetcher, string $errorMessage): array
+    {
+        $result = ServiceHelper::safeField($fetcher, $errorMessage);
+
+        if (is_array($result) && array_key_exists('error', $result)) {
+            return [
+                'data' => [],
+                'error' => $result['error'],
+                'details' => $result['details'] ?? null,
+            ];
+        }
+
+        if (!is_array($result)) {
+            return [
+                'data' => [],
+                'error' => $errorMessage,
+                'details' => 'Μη έγκυρος τύπος δεδομένων',
+            ];
+        }
+
+        return [
+            'data' => $result,
+            'error' => null,
+            'details' => null,
+        ];
+    }
 } 
