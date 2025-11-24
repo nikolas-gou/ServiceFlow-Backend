@@ -45,7 +45,7 @@ class Motor
         $this->manufacturer = $data['manufacturer'] ?? "-";
         $this->kw = $data['kw'] ?? null;
         $this->hp = $data['hp'] ?? null;
-        $this->rpm = $data['rpm'] ?? null;
+        $this->rpm = $data['rpm'] ?? "other";
         $this->step = $data['step'] ?? null;
         $this->half_step = $data['half_step'] ?? null;
         $this->helper_step = $data['helper_step'] ?? null;
@@ -57,7 +57,7 @@ class Motor
         $this->connectionism = $data['connectionism'] ?? "other";
         $this->volt = $data['volt'] ?? "380VY";
         $this->amps = $data['amps'] ?? null;
-        $this->poles = $data['poles'] ?? null;
+        $this->poles = $data['poles'] ?? "other";
         // Νέα coils πεδία
         $this->coils_count = $data['coils_count'] ?? 1;
         $this->half_coils_count = $data['half_coils_count'] ?? 1;
@@ -66,7 +66,7 @@ class Motor
         $this->type_of_step = $data['type_of_step'] ?? "standard";
         $this->type_of_motor = $data['type_of_motor'] ?? "el_motor";
         $this->type_of_volt = $data['type_of_volt'] ?? "3-phase";
-        $this->created_at = $data['created_at'] ?? "";
+        $this->created_at = $data['created_at'] ?? null;
         $this->customer_id = $data['customer_id'] ?? null;
         $this->motorCrossSectionLinks = $data['motor_cross_section_links'] ?? [];
     }
@@ -80,7 +80,7 @@ class Motor
             'manufacturer' => $frontendData['manufacturer'] ?? '-',
             'kw' => $frontendData['kw'] ?? null,
             'hp' => $frontendData['hp'] ?? null,
-            'rpm' => $frontendData['rpm'] ?? '1490',
+            'rpm' => $frontendData['rpm'] ?? 'other',
             'step' => $frontendData['step'] ?? null,
             'half_step' => $frontendData['halfStep'] ?? null,
             'helper_step' => $frontendData['helperStep'] ?? null,
@@ -92,7 +92,7 @@ class Motor
             'connectionism' => $frontendData['connectionism'] ?? 'other',
             'volt' => $frontendData['volt'] ?? '380VY',
             'amps' => $frontendData['amps'] ?? null,
-            'poles' => $frontendData['poles'] ?? '6',
+            'poles' => $frontendData['poles'] ?? 'other',
             // Νέα coils πεδία
             'coils_count' => $frontendData['coilsCount'] ?? 1,
             'half_coils_count' => $frontendData['halfCoilsCount'] ?? 1,
@@ -149,11 +149,6 @@ class Motor
         ];
     }
 
-    public function isValid(): bool
-    {
-        return !empty(\trim($this->manufacturer)) && !empty(\trim($this->manufacturer));
-    }
-
     public function toArray(): array
     {
         return [
@@ -186,7 +181,9 @@ class Motor
             "type_of_volt" => $this->type_of_volt,
             'created_at' => $this->created_at,
             'customer_id' => $this->customer_id,
-            "motor_cross_section_links" => $this->motorCrossSectionLinks ? $this->motorCrossSectionLinks->toArray() : []
+            "motor_cross_section_links" => is_array($this->motorCrossSectionLinks)
+                ? array_map(fn($link) => $link->toArray(), $this->motorCrossSectionLinks)
+                : []
         ];
     }
 }
