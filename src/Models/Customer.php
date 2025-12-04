@@ -29,7 +29,7 @@ class Customer
             'name' => $frontendData['name'] ?? '',
             'email' => $frontendData['email'] ?? '',
             'phone' => $frontendData['phone'] ?? '',
-            'created_at' => $frontendData['createdAt'] ?? '',
+            'created_at' => $frontendData['createdAt'] ?? null,
         ];
 
         return new self($dbData);
