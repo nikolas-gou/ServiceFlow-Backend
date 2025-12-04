@@ -10,15 +10,15 @@ class RepairFaultLinks
 
     public function __construct(array $data = [])
     {
-        $this->repair_id = $data['repair_id'] ?? '';
-        $this->common_fault_id = $data['common_fault_id'] ?? '';
+        $this->repair_id = $data['repair_id'] ?? null;
+        $this->common_fault_id = $data['common_fault_id'] ?? null;
     }
 
     public static function fromFrontendFormat(array $frontendData): self
     {
         $dbData = [
             'repair_id' => $frontendData['repairID'] ?? null,
-            'common_fault_id' => $frontendData['commonFaultID'] ?? '',
+            'common_fault_id' => $frontendData['commonFaultID'] ?? null,
         ];
 
         return new self($dbData);
