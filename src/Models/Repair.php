@@ -13,6 +13,7 @@ class Repair
     public $created_at;
     public $is_arrived;
     public $estimated_is_complete;
+    public $deleted_at;
     public $customer;
     public $motor;
     public $repairFaultLinks = [];
@@ -24,11 +25,12 @@ class Repair
         $this->motor_id = $data['motor_id'] ?? null;
         $this->customer_id = $data['customer_id'] ?? null;
         $this->repair_status = $data['repair_status'] ?? '';
-        $this->created_at = $data['created_at'] ?? "";
-        $this->is_arrived = $data['is_arrived'] ?? "";
+        $this->created_at = $data['created_at'] ?? null;
+        $this->is_arrived = $data['is_arrived'] ?? null;
         $this->description = $data['description'] ?? '';
         $this->cost = $data['cost'] ?? null;
-        $this->estimated_is_complete = $data['estimated_is_complete'] ?? '';
+        $this->estimated_is_complete = $data['estimated_is_complete'] ?? null;
+        $this->deleted_at = $data['deleted_at'] ?? null;
         $this->repairFaultLinks = $data['repair_fault_links'] ?? [];
         $this->images = $data['images'] ?? [];
         $this->customer = $data['customer'] ?? null;
@@ -44,11 +46,12 @@ class Repair
             'motor_id' => $frontendData['motorID'] ?? null,
             'customer_id' => $frontendData['customerID'] ?? null,
             'repair_status' => $frontendData['repairStatus'] ?? '',
-            'created_at' => $frontendData['createdAt'] ?? '',
-            'is_arrived' => $frontendData['isArrived'] ?? '',
+            'created_at' => $frontendData['createdAt'] ?? null,
+            'is_arrived' => $frontendData['isArrived'] ?? null,
             'description' => $frontendData['description'] ?? '',
             'cost' => $frontendData['cost'] ?? null,
-            'estimated_is_complete' => $frontendData['estimatedIsComplete'] ?? '',
+            'estimated_is_complete' => $frontendData['estimatedIsComplete'] ?? null,
+            'deleted_at' => $frontendData['deletedAt'] ?? null,
             'repair_fault_links' => array_map(
                 fn($item) => RepairFaultLinks::fromFrontendFormat($item),
                 $frontendData['repairFaultLinks'] ?? []
@@ -74,6 +77,7 @@ class Repair
             'createdAt' => $this->created_at,
             'isArrived' => $this->is_arrived,
             'estimatedIsComplete' => $this->estimated_is_complete,
+            'deletedAt' => $this->deleted_at,
             'description' => $this->description,
             'cost' => $this->cost,
             'customer' => is_object($this->customer) && method_exists($this->customer, 'toFrontendFormat')
@@ -105,15 +109,24 @@ class Repair
             'created_at' => $this->created_at,
             'is_arrived' => $this->is_arrived,
             'estimated_is_complete' => $this->estimated_is_complete,
+            'deleted_at' => $this->deleted_at,
             'description' => $this->description,
             'cost' => $this->cost,
-            'customer' => $this->customer ? $this->customer->toArray() : null,
-            'motor' => $this->motor ? $this->motor->toArray() : null,
+            'customer' => is_object($this->customer) && method_exists($this->customer, 'toArray')
+                ? $this->customer->toArray()
+                : $this->customer,
+            'motor' => is_object($this->motor) && method_exists($this->motor, 'toArray')
+                ? $this->motor->toArray()
+                : $this->motor,
             'repair_fault_links' => array_map(function ($link) {
-                return $link->toArray();
+                return is_object($link) && method_exists($link, 'toArray')
+                    ? $link->toArray()
+                    : $link;
             }, $this->repairFaultLinks),
             'images' => array_map(function ($image) {
-                return $image->toArray();
+                return is_object($image) && method_exists($image, 'toArray')
+                    ? $image->toArray()
+                    : $image;
             }, $this->images)
         ];
     }
