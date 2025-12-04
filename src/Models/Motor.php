@@ -6,7 +6,7 @@ use App\Models\MotorCrossSectionLinks;
 
 class Motor
 {
-    public  $id;
+    public $id;
     public $serial_number;
     public $description;
     public $manufacturer;
@@ -177,11 +177,11 @@ class Motor
             'helper_coils_count' => $this->helper_coils_count,
             'helper_half_coils_count' => $this->helper_half_coils_count,
             'type_of_step' => $this->type_of_step,
-            "type_of_motor" => $this->type_of_motor,
-            "type_of_volt" => $this->type_of_volt,
+            'type_of_motor' => $this->type_of_motor,
+            'type_of_volt' => $this->type_of_volt,
             'created_at' => $this->created_at,
             'customer_id' => $this->customer_id,
-            "motor_cross_section_links" => is_array($this->motorCrossSectionLinks)
+            'motor_cross_section_links' => is_array($this->motorCrossSectionLinks)
                 ? array_map(fn($link) => $link->toArray(), $this->motorCrossSectionLinks)
                 : []
         ];
