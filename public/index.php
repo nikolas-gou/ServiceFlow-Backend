@@ -39,6 +39,8 @@ $containerBuilder->addDefinitions([
         ->constructor(\DI\get(\PDO::class)),
     \App\Repositories\ImageRepository::class => \DI\create()
         ->constructor(\DI\get(\PDO::class)),
+    \App\Repositories\ConnectionRepository::class => \DI\create()
+        ->constructor(\DI\get(\PDO::class)),
     
     // RepairRepository with dependencies
     \App\Repositories\RepairRepository::class => \DI\create()

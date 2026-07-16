@@ -8,6 +8,7 @@ use App\Controllers\CommonFaultController;
 use App\Controllers\StatisticsController;
 use App\Controllers\ImageController;
 use App\Controllers\SuggestedController;
+use App\Controllers\ConnectionController;
 
 $app->options('/{routes:.+}', function ($request, $response) {
     return $response;
@@ -50,4 +51,11 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     $group->group('/suggested', function (RouteCollectorProxy $suggestedGroup) {
         $suggestedGroup->get('/form-values', [SuggestedController::class, 'getSuggestedData']);
     });
+
+    // Connections
+    $group->get('/connections', [ConnectionController::class, 'getAll']);
+    $group->post('/connections', [ConnectionController::class, 'createConnection']);
+    $group->get('/connections/{id}', [ConnectionController::class, 'getConnectionById']);
+    $group->put('/connections/{id}', [ConnectionController::class, 'updateConnection']);
+    $group->delete('/connections/{id}', [ConnectionController::class, 'deleteConnection']);
 });
