@@ -57,7 +57,8 @@ class RepairController
     public function createRepair(Request $request, Response $response): Response
     {
         try {
-            $data = json_decode($request->getBody()->getContents(), true);
+            $body = (string) $request->getBody();
+            $data = json_decode($body, true);
 
             if (!isset($data['repair']) || !isset($data['repair']['customer']) || !isset($data['repair']['motor'])) {
                 return ResponseHelper::validationError($response, ['Λείπουν απαραίτητα δεδομένα (repair, customer ή motor)']);
@@ -65,11 +66,7 @@ class RepairController
 
             $repair = Repair::fromFrontendFormat($data['repair']);
 
-            error_log("Creating repair with data: " . json_encode($data));
-
             $newRepair = $this->repairRepository->createNewRepair($repair);
-
-            error_log("Created repair result: " . json_encode($newRepair));
 
             return ResponseHelper::success($response, $newRepair, 'Η επισκευή δημιουργήθηκε επιτυχώς', 201);
         } catch (\Exception $e) {
@@ -98,7 +95,8 @@ class RepairController
     {
         try {
             $id = $args['id'];
-            $data = json_decode($request->getBody()->getContents(), true);
+            $body = (string) $request->getBody();
+            $data = json_decode($body, true);
 
             if (!isset($data['repair']) || !isset($data['repair']['customer']) || !isset($data['repair']['motor'])) {
                 return ResponseHelper::validationError($response, ['Λείπουν απαραίτητα δεδομένα (repair, customer ή motor)']);
@@ -106,11 +104,7 @@ class RepairController
 
             $repair = Repair::fromFrontendFormat($data['repair']);
             
-            error_log("Updating repair with data: " . json_encode($data));
-            
             $updatedRepair = $this->repairRepository->updateRepair($id, $repair);
-            
-            error_log("Updated repair result: " . json_encode($updatedRepair));
             
             return ResponseHelper::success($response, $updatedRepair, 'Η επισκευή ενημερώθηκε επιτυχώς');
         } catch (\Exception $e) {
