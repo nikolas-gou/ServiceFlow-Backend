@@ -80,14 +80,41 @@ class RepairController
         try {
             $id = $args['id'];
             $success = $this->repairRepository->softDelete($id);
-            
+
             if (!$success) {
                 return ResponseHelper::notFound($response, 'Η επισκευή δεν βρέθηκε');
             }
-            
+
             return ResponseHelper::success($response, null, 'Η επισκευή μεταφέρθηκε στον κάδο ανακύκλωσης');
         } catch (\Exception $e) {
             return ResponseHelper::serverError($response, 'Σφάλμα κατά τη διαγραφή της επισκευής: ' . $e->getMessage());
+        }
+    }
+
+    public function getTrash(Request $request, Response $response): Response
+    {
+        try {
+            $queryParams = $request->getQueryParams();
+            $result = $this->repairRepository->getTrashPaginated($queryParams);
+            return ResponseHelper::success($response, $result['data'], 'Ο κάδος ανακύκλωσης ανακτήθηκε επιτυχώς', 200, $result['pagination']);
+        } catch (\Exception $e) {
+            return ResponseHelper::serverError($response, 'Failed to retrieve trash: ' . $e->getMessage());
+        }
+    }
+
+    public function restore(Request $request, Response $response, $args): Response
+    {
+        try {
+            $id = $args['id'];
+            $success = $this->repairRepository->restore($id);
+
+            if (!$success) {
+                return ResponseHelper::notFound($response, 'Η επισκευή δεν βρέθηκε στον κάδο ανακύκλωσης');
+            }
+
+            return ResponseHelper::success($response, null, 'Η επισκευή επαναφέρθηκε επιτυχώς');
+        } catch (\Exception $e) {
+            return ResponseHelper::serverError($response, 'Σφάλμα κατά την επαναφορά της επισκευής: ' . $e->getMessage());
         }
     }
 

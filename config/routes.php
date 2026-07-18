@@ -27,9 +27,11 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     // Repairs
     $group->get('/repairs', [RepairController::class, 'getAll']);
     $group->post('/repairs', [RepairController::class, 'createRepair']);
+    $group->get('/repairs/trash', [RepairController::class, 'getTrash']);
     $group->get('/repairs/{id}', [RepairController::class, 'getRepairById']);
     $group->put('/repairs/{id}', [RepairController::class, 'updateRepair']);
     $group->patch('/repairs/{id}/soft-delete', [RepairController::class, 'softDelete']);
+    $group->patch('/repairs/{id}/restore', [RepairController::class, 'restore']);
 
     // Common Faults
     $group->get('/common_faults', [CommonFaultController::class, 'getAll']);

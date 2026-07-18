@@ -255,6 +255,108 @@ class RepairRepository
         ];
     }
 
+    /**
+     * Get paginated soft-deleted repairs (ο κάδος ανακύκλωσης)
+     *
+     * @param array $params Pagination + search parameters
+     * @return array Returns data and pagination metadata
+     */
+    public function getTrashPaginated(array $params = [])
+    {
+        $page = isset($params['page']) ? max(1, (int)$params['page']) : 1;
+        $perPage = isset($params['perPage']) ? max(1, min(100, (int)$params['perPage'])) : 20;
+        $offset = ($page - 1) * $perPage;
+
+        $search = $params['search'] ?? null;
+
+        $where = ["r.deleted_at IS NOT NULL"];
+        $bindings = [];
+
+        if ($search && !empty($search) && is_string($search)) {
+            $searchValue = "%{$search}%";
+            $where[] = "(m.manufacturer LIKE :search1 OR m.serial_number LIKE :search2 OR
+                        c.name LIKE :search3)";
+            $bindings[':search1'] = $searchValue;
+            $bindings[':search2'] = $searchValue;
+            $bindings[':search3'] = $searchValue;
+        }
+
+        $whereClause = implode(' AND ', $where);
+
+        $countQuery = "SELECT COUNT(DISTINCT r.id) as total
+                      FROM repairs r
+                      LEFT JOIN motors m ON r.motor_id = m.id
+                      LEFT JOIN customers c ON r.customer_id = c.id
+                      WHERE {$whereClause}";
+
+        $countStmt = $this->conn->prepare($countQuery);
+        foreach ($bindings as $key => $value) {
+            $countStmt->bindValue($key, $value);
+        }
+        $countStmt->execute();
+        $result = $countStmt->fetch(\PDO::FETCH_ASSOC);
+        $totalItems = $result ? (int)$result['total'] : 0;
+
+        $dataQuery = "SELECT r.* FROM repairs r
+                     LEFT JOIN motors m ON r.motor_id = m.id
+                     LEFT JOIN customers c ON r.customer_id = c.id
+                     WHERE {$whereClause}
+                     ORDER BY r.deleted_at DESC
+                     LIMIT :limit OFFSET :offset";
+
+        $dataStmt = $this->conn->prepare($dataQuery);
+        foreach ($bindings as $key => $value) {
+            $dataStmt->bindValue($key, $value);
+        }
+        $dataStmt->bindValue(':limit', $perPage, \PDO::PARAM_INT);
+        $dataStmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $dataStmt->execute();
+        $repairsData = $dataStmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $repairs = [];
+        foreach ($repairsData as $repairData) {
+            $repair = new Repair($repairData);
+
+            if (!empty($repair->motor_id) && $this->motorRepository) {
+                $repair->motor = $this->motorRepository->getMotorById($repair->motor_id);
+            }
+            if (!empty($repair->customer_id) && $this->customerRepository) {
+                $repair->customer = $this->customerRepository->getCustomerById($repair->customer_id);
+            }
+
+            $repairs[] = $repair->toFrontendFormat();
+        }
+
+        $totalPages = (int)ceil($totalItems / $perPage);
+
+        return [
+            'data' => $repairs,
+            'pagination' => [
+                'currentPage' => $page,
+                'perPage' => $perPage,
+                'totalItems' => $totalItems,
+                'totalPages' => $totalPages,
+                'hasNextPage' => $page < $totalPages,
+                'hasPrevPage' => $page > 1,
+            ],
+        ];
+    }
+
+    public function restore($id)
+    {
+        try {
+            $query = "UPDATE repairs SET deleted_at = NULL WHERE id = :id AND deleted_at IS NOT NULL";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
+            $stmt->execute();
+
+            return $stmt->rowCount() > 0;
+        } catch (\Exception $e) {
+            error_log("Error in restore for ID {$id}: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
     public function getRepairById($id)
     {
         try {
