@@ -84,13 +84,18 @@ class RepairRepository
         $perPage = isset($params['perPage']) ? max(1, min(100, (int)$params['perPage'])) : 20;
         $offset = ($page - 1) * $perPage;
 
-        // Filters - Search(by name, kw, hp, S/N), Manufacturer, VoltType, KwMin, KwMax, RPM
+        // Filters - Search(by name, kw, hp, S/N), Manufacturer, VoltType, KwMin, KwMax, RPM,
+        // Status, TypeOfMotor, DateFrom/DateTo (arrival date)
         $search = $params['search'] ?? null;
         $manufacturer = $params['manufacturer'] ?? null;
         $voltType = $params['voltType'] ?? null;
         $kwMin = isset($params['kwMin']) ? (float)$params['kwMin'] : null;
         $kwMax = isset($params['kwMax']) ? (float)$params['kwMax'] : null;
         $rpm = $params['rpm'] ?? null;
+        $status = $params['status'] ?? null;
+        $typeOfMotor = $params['typeOfMotor'] ?? null;
+        $dateFrom = $params['dateFrom'] ?? null;
+        $dateTo = $params['dateTo'] ?? null;
 
         // Sorting
         $sortBy = $params['sortBy'] ?? 'is_arrived';
@@ -139,6 +144,28 @@ class RepairRepository
         if ($rpm !== null && $rpm !== '' && (is_string($rpm) || is_numeric($rpm))) {
             $where[] = "m.rpm = :rpm";
             $bindings[':rpm'] = $rpm;
+        }
+
+        // Repair status filter
+        if ($status && !empty($status) && is_string($status)) {
+            $where[] = "r.repair_status = :status";
+            $bindings[':status'] = $status;
+        }
+
+        // Type of motor filter (el_motor, pump, generator)
+        if ($typeOfMotor && !empty($typeOfMotor) && is_string($typeOfMotor)) {
+            $where[] = "m.type_of_motor = :typeOfMotor";
+            $bindings[':typeOfMotor'] = $typeOfMotor;
+        }
+
+        // Arrival date range filter
+        if ($dateFrom && !empty($dateFrom) && is_string($dateFrom)) {
+            $where[] = "r.is_arrived >= :dateFrom";
+            $bindings[':dateFrom'] = "{$dateFrom} 00:00:00";
+        }
+        if ($dateTo && !empty($dateTo) && is_string($dateTo)) {
+            $where[] = "r.is_arrived <= :dateTo";
+            $bindings[':dateTo'] = "{$dateTo} 23:59:59";
         }
 
         $whereClause = implode(' AND ', $where);
