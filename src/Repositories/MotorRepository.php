@@ -17,9 +17,11 @@ class MotorRepository
 
     public function getAll(): array
     {
-        $query = "SELECT m.* FROM motors m 
+        $query = "SELECT m.*, COUNT(r.id) as repairs_count 
+                  FROM motors m 
                   INNER JOIN repairs r ON m.id = r.motor_id 
                   WHERE r.deleted_at IS NULL 
+                  GROUP BY m.id
                   ORDER BY m.created_at DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -28,10 +30,61 @@ class MotorRepository
         $motors = [];
         foreach ($motorsData as $motorData) {
             $motor = new Motor($motorData);
-            $motors[] = $motor->toFrontendFormat();
+            $motorDataFormatted = $motor->toFrontendFormat();
+            $motorDataFormatted['repairsCount'] = (int) ($motorData['repairs_count'] ?? 0);
+            $motors[] = $motorDataFormatted;
         }
 
         return $motors;
+    }
+
+    public function getRepairsByMotorId($motorId): array
+    {
+        $query = "SELECT r.*, 
+                  c.name as customer_name, c.type as customer_type, c.phone as customer_phone, c.email as customer_email
+                  FROM repairs r
+                  LEFT JOIN customers c ON r.customer_id = c.id
+                  WHERE r.motor_id = :motor_id AND r.deleted_at IS NULL
+                  ORDER BY r.created_at DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':motor_id', $motorId, \PDO::PARAM_INT);
+        $stmt->execute();
+        $repairsData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $repairs = [];
+        foreach ($repairsData as $repairData) {
+            $repair = [];
+            $repair['id'] = $repairData['id'];
+            $repair['motorID'] = $repairData['motor_id'];
+            $repair['customerID'] = $repairData['customer_id'];
+            $repair['repairStatus'] = $repairData['repair_status'];
+            $repair['description'] = $repairData['description'];
+            $repair['cost'] = $repairData['cost'];
+            $repair['createdAt'] = $repairData['created_at'];
+            $repair['isArrived'] = $repairData['is_arrived'];
+            $repair['estimatedIsComplete'] = $repairData['estimated_is_complete'];
+            $repair['customer'] = [
+                'id' => $repairData['customer_id'],
+                'name' => $repairData['customer_name'],
+                'type' => $repairData['customer_type'],
+                'phone' => $repairData['customer_phone'],
+                'email' => $repairData['customer_email'],
+            ];
+
+            // Φέρνουμε τα common faults για αυτή την επισκευή
+            $faultQuery = "SELECT cf.id, cf.name 
+                          FROM repair_fault_links rfl
+                          INNER JOIN common_faults cf ON rfl.common_fault_id = cf.id
+                          WHERE rfl.repair_id = :repair_id";
+            $faultStmt = $this->conn->prepare($faultQuery);
+            $faultStmt->bindParam(':repair_id', $repairData['id'], \PDO::PARAM_INT);
+            $faultStmt->execute();
+            $repair['repairFaultLinks'] = $faultStmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            $repairs[] = $repair;
+        }
+
+        return $repairs;
     }
 
     public function getMotorById($id): ?array
@@ -99,15 +152,15 @@ class MotorRepository
 
     public function createMotor(Motor $motor, $customer_id): int
     {
-        $motorQuery = "INSERT 
-                        INTO motors (customer_id, serial_number, description, manufacturer, kw, hp, rpm, 
-                        step, half_step, helper_step, helper_half_step, spiral, half_spiral, 
-                        helper_spiral, helper_half_spiral, connectionism, volt, amps, poles, 
+        $motorQuery = "INSERT
+                        INTO motors (customer_id, serial_number, description, manufacturer, kw, hp, rpm,
+                        step, half_step, helper_step, helper_half_step, spiral, half_spiral,
+                        helper_spiral, helper_half_spiral, connectionism, volt, amps, poles,
                         coils_count, half_coils_count, helper_coils_count, helper_half_coils_count,
-                        type_of_motor, type_of_volt, type_of_step, created_at) 
-                        VALUES (:customer_id, :serial_number, :description, :manufacturer, :kw, :hp, :rpm, 
-                        :step, :half_step, :helper_step, :helper_half_step, :spiral, :half_spiral, 
-                        :helper_spiral, :helper_half_spiral, :connectionism, :volt, :amps, :poles, 
+                        type_of_motor, type_of_volt, type_of_step, created_at)
+                        VALUES (:customer_id, :serial_number, :description, :manufacturer, :kw, :hp, :rpm,
+                        :step, :half_step, :helper_step, :helper_half_step, :spiral, :half_spiral,
+                        :helper_spiral, :helper_half_spiral, :connectionism, :volt, :amps, :poles,
                         :coils_count, :half_coils_count, :helper_coils_count, :helper_half_coils_count,
                         :type_of_motor, :type_of_volt, :type_of_step, :created_at)";
         
@@ -150,7 +203,7 @@ class MotorRepository
             $createdAt = date('Y-m-d H:i:s');
         }
         $motorStmt->bindParam(':created_at', $createdAt);
-        
+
         $motorStmt->execute();
         return (int) $this->conn->lastInsertId();
     }
@@ -251,9 +304,9 @@ class MotorRepository
     public function getTotalCountFiltered(array $filters = []): int
     {
         $sql = "
-            SELECT COUNT(*) 
+            SELECT COUNT(DISTINCT m.id)
             FROM motors m
-            INNER JOIN repairs r ON m.id = r.motor_id  
+            INNER JOIN repairs r ON m.id = r.motor_id
             WHERE r.deleted_at IS NULL
         ";
         $params = [];
@@ -272,13 +325,13 @@ class MotorRepository
         $currentMonth = (int) date('m');
         
         $sql = "
-            SELECT 
+            SELECT
                 MONTH(m.created_at) as month,
-                COUNT(*) as count
+                COUNT(DISTINCT m.id) as count
             FROM motors m
-            INNER JOIN repairs r ON m.id = r.motor_id  
-            WHERE r.deleted_at IS NULL 
-            AND YEAR(m.created_at) = ? 
+            INNER JOIN repairs r ON m.id = r.motor_id
+            WHERE r.deleted_at IS NULL
+            AND YEAR(m.created_at) = ?
             AND MONTH(m.created_at) <= ?
         ";
         $params = [$currentYear, $currentMonth];
@@ -304,10 +357,10 @@ class MotorRepository
     public function getCountByMonth(string $monthKey): int
     {
         $stmt = $this->conn->prepare("
-            SELECT COUNT(*) 
+            SELECT COUNT(DISTINCT m.id)
             FROM motors m
-            INNER JOIN repairs r ON m.id = r.motor_id  
-            WHERE r.deleted_at IS NULL 
+            INNER JOIN repairs r ON m.id = r.motor_id
+            WHERE r.deleted_at IS NULL
             AND DATE_FORMAT(m.created_at, '%Y-%m') = ?
         ");
         $stmt->execute([$monthKey]);
@@ -320,7 +373,7 @@ class MotorRepository
     public function getConnectionismCounts(): array
     {
         $stmt = $this->conn->prepare("
-            SELECT connectionism, COUNT(*) as count
+            SELECT connectionism, COUNT(DISTINCT m.id) as count
             FROM motors m
             INNER JOIN repairs r ON m.id = r.motor_id
             WHERE r.deleted_at IS NULL
@@ -336,14 +389,14 @@ class MotorRepository
     public function getMonthlyConnectionismData(string $connectionismType, int $year, int $month): array
     {
         $stmt = $this->conn->prepare("
-            SELECT 
+            SELECT
                 MONTH(m.created_at) as month,
-                COUNT(*) as count
+                COUNT(DISTINCT m.id) as count
             FROM motors m
             INNER JOIN repairs r ON m.id = r.motor_id
-            WHERE r.deleted_at IS NULL 
+            WHERE r.deleted_at IS NULL
             AND m.connectionism = ?
-            AND YEAR(m.created_at) = ? 
+            AND YEAR(m.created_at) = ?
             AND MONTH(m.created_at) <= ?
             GROUP BY MONTH(m.created_at)
             ORDER BY month ASC

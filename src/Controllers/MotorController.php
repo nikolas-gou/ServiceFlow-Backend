@@ -40,4 +40,14 @@ class MotorController
             return ResponseHelper::serverError($response, 'Failed to retrieve motor: ' . $e->getMessage());
         }
     }
+
+    public function getRepairsByMotorId(Request $request, Response $response, $args): Response
+    {
+        try {
+            $repairs = $this->motorRepository->getRepairsByMotorId($args['id']);
+            return ResponseHelper::success($response, $repairs, 'Motor repairs retrieved successfully');
+        } catch (\Exception $e) {
+            return ResponseHelper::serverError($response, 'Failed to retrieve motor repairs: ' . $e->getMessage());
+        }
+    }
 }
